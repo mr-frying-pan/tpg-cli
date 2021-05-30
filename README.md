@@ -30,7 +30,7 @@ generator.
 
 Additional help might be available when passing `-h` or `--help` option.
 
-** Output format
+## Output format
 
 Proofs and counterexamples are printed to stdout in XML format. They are not formatted to be nicely readable, but it
 should be possible to parse them using some XML parser.
@@ -109,15 +109,20 @@ separated list of pairs (maybe not necessarily?). This will be updated in the fu
 
 [//]: # (TODO: review output format)
 
-** Debugging information
+## Debugging information
 
 Not yet implemented :(
 
-** Tests
+## Tests
 
 Not yet implemented :(
 
-* Copyright
+# Issues
+
+If you encounter any problems, please check if you get the same problems using the original prover with the same
+inputs. If yes, then problem is there, if no, then please open an issue here, I'll try to fix.
+
+# Copyright
 
 Copyright © 2001-2021 Wolfgang Schwarz (wo@umsu.de) – original proof generator
 Copyright © 2021 Andrius Maliuginas – CLI interface
