@@ -51,7 +51,7 @@ function ModelFinder(initFormulas, parser, accessibilityConstraints, s5) {
      * to find a model; <accessibilityConstraints> is another such list, for
      * modal models; <s5> is boolean.
      */
-    log("*** creating ModelFinder");
+    //log("*** creating ModelFinder");
     
     this.parser = parser;
     this.s5 = s5;
@@ -105,13 +105,13 @@ ModelFinder.prototype.getClauses = function(formulas) {
         var skolemized = this.skolemize(distinctVars);
         //log('skolemized: '+skolemized);
         var quantifiersRemoved = skolemized.removeQuantifiers();
-        log('qantifiers removed: '+quantifiersRemoved);
+        //log('qantifiers removed: '+quantifiersRemoved);
         var clauses = this.cnf(quantifiersRemoved);
-        log('cnf: '+clauses);
+        //log('cnf: '+clauses);
         var clausesTseitin = this.tseitinCNF(quantifiersRemoved);
         if (clausesTseitin.length < clauses.length) {
             clauses = clausesTseitin;
-            log('tseitin cnf shorter: '+clauses);
+            //log('tseitin cnf shorter: '+clauses);
         }
         res.extendNoDuplicates(clauses);
     }
@@ -161,7 +161,7 @@ ModelFinder.prototype.skolemize = function(formula) {
     /**
      * return <formula> with existential quantifiers skolemized away
      */
-    log('skolemizing '+formula);
+    //log('skolemizing '+formula);
     var boundVars = arguments[1] ? arguments[1].copy() : [];
     // log(formula.string+' bv: '+boundVars);
     var parser = this.parser;
@@ -249,7 +249,7 @@ ModelFinder.prototype.tseitinCNF = function(formula) {
         return [[formula]];
     }
 
-    log('creating tseitin transform of '+formula);
+    //log('creating tseitin transform of '+formula);
     if (formula.operator == '∧') {
         // TCNF(A & B) = [TCNF(A), TCNF(B)]:
         var res = this.tseitinCNF(formula.sub1).concatNoDuplicates(
@@ -283,13 +283,13 @@ ModelFinder.prototype.tseitinCNF = function(formula) {
             // add 'p <-> S':
             var bicond = new BinaryFormula('↔', p, subf);
             clauses.extendNoDuplicates(this.cnf(bicond));
-            log('  adding clause for '+bicond+': '+clauses);
+            //log('  adding clause for '+bicond+': '+clauses);
         }
         // else log('subformula already known');
         if (subformulas.length == 0) {
             // add p itself:
             clauses.extendNoDuplicates([[p]]);
-            log('  adding tseitin formula '+p);
+            //log('  adding tseitin formula '+p);
         }
         // replace all occurrences of sentence in the list by p:
         for (var i=0; i<subformulas.length; i++) {
@@ -501,9 +501,9 @@ ModelFinder.prototype.nextStep = function() {
      * remaining clauses.
      */
 
-    log("** modelfinder: "+this.model.clauses);
-    log("D: "+this.model.domain+"/"+this.model.worlds);
-    log(dictToString(this.model.curInt));
+    //log("** modelfinder: "+this.model.clauses);
+    //log("D: "+this.model.domain+"/"+this.model.worlds);
+    //log(dictToString(this.model.curInt));
     if (this.model.clauses.length == 0) {
         //log('done');
         return true;
@@ -573,7 +573,8 @@ ModelFinder.prototype.nextStep = function() {
                 //log('setting value for '+redAtom+' to '+(atom==literal));
                 this.model.curInt[redAtom] = (atom==literal);
             }
-            log("literal is satisfied: "+redAtom+" -> "+this.model.getCurInt(redAtom));
+
+            //log("literal is satisfied: "+redAtom+" -> "+this.model.getCurInt(redAtom));
             this.model.interpretation = this.model.curInt;
             this.model.termValues = null;
             this.model.clauses.shift();
@@ -587,7 +588,7 @@ ModelFinder.prototype.backtrack = function() {
     /**
      * try a different interpretation
      */
-    log("backtracking");
+    //log("backtracking");
     if (this.alternativeModels.length == 0) {
         //log("no more models to backtrack; initializing larger model");
         var numWorlds = this.model.worlds.length;
@@ -643,7 +644,7 @@ function Model(modelfinder, numIndividuals, numWorlds) {
 
     // initialize clauses we need to satisfy:
     this.clauses = this.getDomainClauses();
-    log(this.clauses.length+" clauses");
+    //log(this.clauses.length+" clauses");
 
     // list of all terms that we need to interpret; e.g. 'a','f(0)','f(1)':
     var terms = this.getTerms();
@@ -857,7 +858,7 @@ Model.prototype.initTermValues = function(literal) {
      *      We then recompute the values of the terms to the right of the
      *      present term and exit the loop.
      */
-    log("initializing termValues in "+literal);
+    //log("initializing termValues in "+literal);
     
     var atom = literal.sub || literal;
     var termIsOld = {};
@@ -1041,7 +1042,7 @@ Model.prototype.iterateTermValues = function() {
         }
         tv[2]++;
         this.curInt[redTermStr] = tv[2];
-        log('setting '+tv[1]+' (= '+redTermStr+') to '+tv[2]);
+        //log('setting '+tv[1]+' (= '+redTermStr+') to '+tv[2]);
         
         // Now we recompute/reset the values of terms to the right. To this end,
         // we first have to fill back in the interpretation of reduced terms
@@ -1063,7 +1064,7 @@ Model.prototype.iterateTermValues = function() {
                 this.termValues[j][2] = null;
             }
         }
-        log(this.termValues.toString());
+        //log(this.termValues.toString());
         if (this.isRedundant()) {
             // try another iteration; e.g. while a->0, b->0, c->2 is redundant
             // on D = {0,1,2}, the next iteration a->0, b->1, c->0 is not

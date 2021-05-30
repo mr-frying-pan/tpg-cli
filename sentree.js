@@ -26,7 +26,7 @@ function SenTree(fvTree, parser) {
     this.replaceFreeVariablesAndSkolemTerms();
     if (parser.isModal) this.modalize();
     this.findComplementaryNodes();
-    log(this.toString());
+    //log(this.toString());
 }
 
 SenTree.prototype.markEndNodesClosed = function() {
@@ -244,7 +244,7 @@ SenTree.prototype.transferNode = function(node, par) {
         while (fromFormula.sub && fromFormula.sub.sub) fromFormula = fromFormula.sub.sub;
         var f1 = fromFormula.beta(1);
         var f2 = fromFormula.beta(2);
-        log("beta1 "+f1+" beta2 "+f2);
+        //log("beta1 "+f1+" beta2 "+f2);
         if (!nodeFormula.equals(f1.nnf())) node.formula = f2;
         else if (!nodeFormula.equals(f2.nnf())) node.formula = f1;
         else {

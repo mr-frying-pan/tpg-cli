@@ -193,7 +193,7 @@ Parser.prototype.stripAccessibilityClauses = function(formula) {
     // return new non-modal formula with all accessibility conditions stripped;
     // e.g. ∃v(wRv∧Av) => ∃vAv; ∀v(¬wRv∨Av) => ∀vAv. <formula> is normalized (in
     // NNF).
-    log(formula);
+    //log(formula);
     if (formula.quantifier) {
         var nmatrix = this.stripAccessibilityClauses(formula.matrix);
         if (nmatrix == formula.matrix) return formula;
@@ -376,7 +376,7 @@ Parser.prototype.parseFormula = function(str) {
     reTest = /^[^\d\(\),%]\d*/.exec(str);
     if (reTest && reTest.index == 0) {
         // normal atomic
-        log("   string is atomic (predicate = '"+reTest[0]+"'); ");
+        //log("   string is atomic (predicate = '"+reTest[0]+"'); ");
         try {
             var predicate = reTest[0];
             var termstr = str.substr(predicate.length); // empty for propositional constants
@@ -439,7 +439,7 @@ Parser.prototype.tidyFormula = function(str) {
     // check for illegal symbols:
     var m =str.match(/[^\w\d\(\)∀∃□◇∧↔∨¬→,=ξω$]/);
     if (m) throw("I don't understand the symbol '"+m[0]+"'.");
-    log(str);
+    //log(str);
     return str;
 }
 
