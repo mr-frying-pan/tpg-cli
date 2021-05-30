@@ -1466,3 +1466,5 @@ function dictToString(dict) {
     }
     return res;
 }
+
+module.exports = ModelFinder;
