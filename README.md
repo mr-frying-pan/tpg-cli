@@ -39,18 +39,18 @@ Proof structure look like this:
 ```xml
 <proof>
     {NODE}+
-	{SPLIT}?
+    {SPLIT}?
 </proof>
 
 SPLIT:
 <split>
     <col>
         {NODE}+
-		{SPLIT}?
+        {SPLIT}?
     </col>
     <col>
         {NODE}+
-		{SPLIT}?
+        {SPLIT}?
     </col>
 </split>
 
@@ -67,35 +67,35 @@ NODE:
 Counterexample structure looks like this:
 ```xml
 <counter>
-	<worlds>WORLDS</worlds>
-	<domain>INTS</domain>
-	<constants>
-		{CONSTANT}*
-	</constants>
-	<funcs>
-		{FUNC}*
-	</funcs>
-	<preds>
-		{PRED}*
-	</preds>
+    <worlds>WORLDS</worlds>
+    <domain>INTS</domain>
+    <constants>
+        {CONSTANT}*
+    </constants>
+    <funcs>
+        {FUNC}*
+    </funcs>
+    <preds>
+        {PRED}*
+    </preds>
 </counter>
 
 CONSTANT:
 <constant>
-	<name>STRING</STRING>
-	<val>INT</val>
+    <name>STRING</STRING>
+    <val>INT</val>
 </constant>
 
 FUNC:
 <func>
-	<name>STRING</name>
-	<definition>DEFS</definition>
+    <name>STRING</name>
+    <definition>DEFS</definition>
 </func>
 
 PRED:
 <pred>
-	<name>STRING</name>
-	<definition>DEFS</definition>
+    <name>STRING</name>
+    <definition>DEFS</definition>
 </pred>
 ```
 
