@@ -1,3 +1,5 @@
+const { Prover, Node } = require('./prover.js');
+
 // Unlike Tree objects, SenTrees have their nodes really stored in tree form,
 // with a root node and children/parent attributes.  Other than that, the nodes
 // are the same Node objects as on Tree Branches.
@@ -16,11 +18,11 @@ function SenTree(fvTree, parser) {
 
     this.markEndNodesClosed();
     this.transferNodes();
-    log(this.toString());
+    //log(this.toString());
     this.removeUnusedNodes();
-    log(this.toString());
+    //log(this.toString());
     this.replaceFreeVariablesAndSkolemTerms();
-    log(this.toString());
+    //log(this.toString());
 }
 
 SenTree.prototype.markEndNodesClosed = function() {
@@ -50,7 +52,7 @@ SenTree.prototype.transferNodes = function() {
     // conjunctions in NNF, but the classical senTree rules expand them in one
     // go, so we have to remove the conjunctive formulas.
 
-    log("initializing sentence tableau nodes");
+    //log("initializing sentence tableau nodes");
 
     this.addInitNodes();
     
@@ -67,7 +69,7 @@ SenTree.prototype.transferNodes = function() {
                 continue;
             }
             // <node> not yet collected, <par> is its (already collected) parent
-            log(this.toString());
+            //log(this.toString());
             par = this.transferNode(node, par);
         }
     }
@@ -113,7 +115,7 @@ SenTree.prototype.transferNode = function(node, par) {
     // adjust fromNodes for double negation elimination:
     for (var i=0; i<node.fromNodes.length; i++) {
         if (node.fromNodes[i].dneTo) {
-            log('setting fromNode '+i+' of '+node+' to '+node.fromNodes[i].dneTo);
+            //log('setting fromNode '+i+' of '+node+' to '+node.fromNodes[i].dneTo);
             node.fromNodes[i] = node.fromNodes[i].dneTo;
         }
     }
@@ -121,12 +123,12 @@ SenTree.prototype.transferNode = function(node, par) {
     switch (node.fromRule) {
     case Prover.alpha : {
         var from = node.fromNodes[0];
-        log("transferring "+node+" (alpha from "+from+")");
+        //log("transferring "+node+" (alpha from "+from+")");
         var fromFormula = from.formula;
         while (fromFormula.sub && fromFormula.sub.sub) fromFormula = fromFormula.sub.sub;
         var f1 = fromFormula.alpha(1);
         var f2 = fromFormula.alpha(2);
-        log("alpha1 "+f1+" alpha2 "+f2);
+        //log("alpha1 "+f1+" alpha2 "+f2);
 
         // if <from> is the result of a biconditional application, reset
         // fromNodes[0] to the biconditional (A<->B is expanded to A&B | ~A&~B):
@@ -148,7 +150,7 @@ SenTree.prototype.transferNode = function(node, par) {
             // node formula matches both alpha1 and alpha2: if previous node
             // also originates from <from> by the alpha rule, this one must be
             // the second.
-            log('both match');
+            //log('both match');
             node.formula = (par.expansionStep == node.expansionStep && !par.biconditionalExpansion) ? f2 : f1;
         }
         this.appendChild(par, node);
@@ -166,12 +168,12 @@ SenTree.prototype.transferNode = function(node, par) {
         
     case Prover.beta: {
         var from = node.fromNodes[0];
-        log("transferring "+node+" (beta from "+from+")");
+        //log("transferring "+node+" (beta from "+from+")");
         var fromFormula = from.formula;
         while (fromFormula.sub && fromFormula.sub.sub) fromFormula = fromFormula.sub.sub;
         var f1 = fromFormula.beta(1);
         var f2 = fromFormula.beta(2);
-        log("beta1 "+f1+" beta2 "+f2);
+        //log("beta1 "+f1+" beta2 "+f2);
         if (!nodeFormula.equals(f1.normalize())) node.formula = f2;
         else if (!nodeFormula.equals(f2.normalize())) node.formula = f1;
         else {
@@ -183,7 +185,7 @@ SenTree.prototype.transferNode = function(node, par) {
         // unused for removal (A<->B is expanded to A&B | ~A&~B):
         if (fromFormula.operator == '↔' ||
             (fromFormula.operator == '¬' && fromFormula.sub.operator == '↔')) {
-            log('marking '+node+' as unused');
+            //log('marking '+node+' as unused');
             node.biconditionalExpansion = true;
             node.used = false;
             // NB: after normalizing initNodes, we can't have a fvTree with
@@ -192,7 +194,7 @@ SenTree.prototype.transferNode = function(node, par) {
         }
         this.appendChild(par, node);
         if (par.children.length == 2 && node.formula == f1) {
-            log('swapping children because node.formula == beta1');
+            //log('swapping children because node.formula == beta1');
             par.children.reverse();
         }
         return node;
@@ -202,7 +204,7 @@ SenTree.prototype.transferNode = function(node, par) {
         // <node> is the result of expanding a (possibly negated)
         // quantified formula (or a modal formula in S5).
         var from = node.fromNodes[0];
-        log("transferring "+node+" (gamma/delta from "+from+")");
+        //log("transferring "+node+" (gamma/delta from "+from+")");
         var fromFormula = from.formula;
         while (fromFormula.sub && fromFormula.sub.sub) fromFormula = fromFormula.sub.sub;
         var matrix = fromFormula.matrix || fromFormula.sub.matrix;
@@ -216,7 +218,7 @@ SenTree.prototype.transferNode = function(node, par) {
             var newFla = fromFormula.sub ? matrix.negate() : matrix;
         }
         var boundVar = fromFormula.sub ? fromFormula.sub.variable : fromFormula.variable;
-        log(boundVar + ' is instantiated (in '+newFla+') by '+node.instanceTerm);
+        //log(boundVar + ' is instantiated (in '+newFla+') by '+node.instanceTerm);
         if (node.instanceTerm) {
             node.formula = newFla.substitute(boundVar, node.instanceTerm);
         }
@@ -230,7 +232,7 @@ SenTree.prototype.transferNode = function(node, par) {
     case Prover.modalGamma: {
         // <node> is the result of expanding a □ or ¬◇ formula.
         var from = node.fromNodes[0];
-        log("transferring "+node+" (modalGamma from "+from+")");
+        //log("transferring "+node+" (modalGamma from "+from+")");
         var fromFormula = from.formula;
         while (fromFormula.sub && fromFormula.sub.sub) fromFormula = fromFormula.sub.sub;
         if (fromFormula.sub) { // from = ¬◇A = ¬∃v(wRv ∧ Av)
@@ -241,7 +243,7 @@ SenTree.prototype.transferNode = function(node, par) {
             var newFla = fromFormula.matrix.sub2;
             var boundVar = fromFormula.variable;
         }
-        log(boundVar + ' is instantiated (in '+newFla+') by '+node.instanceTerm);
+        //log(boundVar + ' is instantiated (in '+newFla+') by '+node.instanceTerm);
         node.formula = newFla.substitute(boundVar, node.instanceTerm);
         this.appendChild(par, node);
         return node;
@@ -251,7 +253,7 @@ SenTree.prototype.transferNode = function(node, par) {
         // <node> is the result of expanding a ◇ formula ∃v(wRv ∧ Av) or a ¬□
         // formula ¬∀v(wRv → Av); so <node> is either wRv or Av/¬Av.
         var from = node.fromNodes[0];
-        log("transferring "+node+" (modalDelta from "+from+")");
+        //log("transferring "+node+" (modalDelta from "+from+")");
         var fromFormula = from.formula;
         while (fromFormula.sub && fromFormula.sub.sub) fromFormula = fromFormula.sub.sub;
         if (node.formula.predicate == this.fvParser.R) {
@@ -284,7 +286,7 @@ SenTree.prototype.addInitNodes = function() {
         this.fvTree.closedBranches[0] : this.fvTree.openBranches[0];
     
     for (var i=0; i<this.initFormulasNonModal.length; i++) {
-        log('adding init node '+branch.nodes[i]);
+        //log('adding init node '+branch.nodes[i]);
         var node = this.makeNode(branch.nodes[i]);
         node.formula = this.initFormulasNonModal[i];
         // Tes, we overwrite the node's original (normalized) formula -- don't
@@ -297,7 +299,7 @@ SenTree.prototype.addInitNodes = function() {
 
 SenTree.prototype.expandDoubleNegation = function(node, parent) {
     // expand doublenegation node <node>, inserting the new nodes after <parent>
-    log("expanding double negation "+node);
+    //log("expanding double negation "+node);
     var newNode = new Node(node.formula.sub.sub, null, [node]);
     this.makeNode(newNode);
     newNode.parent = parent;
@@ -322,7 +324,7 @@ SenTree.prototype.expandDoubleNegation = function(node, parent) {
 } 
 
 SenTree.prototype.replaceFreeVariablesAndSkolemTerms = function() {
-    log("replacing free variables and skolem terms by new constants");
+    //log("replacing free variables and skolem terms by new constants");
     // Free variables and skolem terms are replaced by ordinary constants. We
     // want these to appear in a sensible order (first constand should be 'a',
     // etc.). Free variables all begin with 'ζ' (worlds) or 'ξ' (individuals).
@@ -333,13 +335,13 @@ SenTree.prototype.replaceFreeVariablesAndSkolemTerms = function() {
     var substitutions = []; // list of [term, replacement] pairs
     for (var n=0; n<this.nodes.length; n++) {
         var node = this.nodes[n];
-        log(node)
+        //log(node)
         // apply existing substitutions:
         for (var i=0; i<substitutions.length; i++) {
             var term = substitutions[i][0], repl = substitutions[i][1];
             node.formula = node.formula.substitute(term, repl);
         }
-        log("replaced known variables and skolem terms: "+node);
+        //log("replaced known variables and skolem terms: "+node);
         // replace additional skolem terms by new constants:
         var skterms = getSkolemTerms(node.formula);
         var term;
@@ -348,7 +350,7 @@ SenTree.prototype.replaceFreeVariablesAndSkolemTerms = function() {
             var repl = isWorldTerm ?
                 this.parser.getNewWorldName(true) : this.parser.getNewConstant();
             substitutions.push([term, repl]);
-            log("replacing new skolem term "+term+" by "+repl);
+            //log("replacing new skolem term "+term+" by "+repl);
             node.formula = node.formula.substitute(term, repl);
             // skolem terms can be nested:
             skterms = AtomicFormula.substituteInTerms(skterms, term, repl);
@@ -361,7 +363,7 @@ SenTree.prototype.replaceFreeVariablesAndSkolemTerms = function() {
                 var repl = (fv[0] == 'ζ') ?
                     this.parser.getNewWorldName() : this.parser.getNewConstant();
                 substitutions.push([fv, repl]);
-                log("replacing new variable "+fv+" by "+repl);
+                //log("replacing new variable "+fv+" by "+repl);
                 node.formula = node.formula.substitute(fv, repl);
             }
         }
@@ -407,7 +409,7 @@ SenTree.prototype.replaceFreeVariablesAndSkolemTerms = function() {
 }
 
 SenTree.prototype.removeUnusedNodes = function() {
-    log("removing unused nodes");
+    //log("removing unused nodes");
     if (!this.isClosed) return;
     // first, mark all nodes that were added along with used nodes as used:
     for (var i=0; i<this.nodes.length; i++) {
@@ -432,17 +434,17 @@ SenTree.prototype.removeUnusedNodes = function() {
 
 SenTree.prototype.modalize = function() {
     // undo standard translation for formulas on the tree
-    log("modalizing tree");
+    //log("modalizing tree");
     for (var i=0; i<this.nodes.length; i++) {
         var node = this.nodes[i];
-        log('modalising '+node.formula);
+        //log('modalising '+node.formula);
         node.formula = this.fvParser.translateToModal(node.formula);
         if (node.formula.predicate == this.fvParser.R) {
             node.formula.string = node.formula.terms[0] + this.fvParser.R
                 + node.formula.terms[1];
         }
     }
-    log(this.toString());
+    //log(this.toString());
 }
 
 SenTree.prototype.makeNode = function(node) {
@@ -453,23 +455,23 @@ SenTree.prototype.makeNode = function(node) {
 }
 
 SenTree.prototype.appendChild = function(oldNode, newNode) {
-   log("appending "+newNode+" to "+ oldNode); 
-   if (!newNode.isSenNode) {
-       newNode = this.makeNode(newNode);
-   }
-   newNode.parent = oldNode;
-   oldNode.children.push(newNode);
-   if (oldNode.closedEnd) {
-      oldNode.closedEnd = false;
-      newNode.closedEnd = true;
-   }
-   this.nodes.push(newNode);
-   return newNode;
+    //log("appending "+newNode+" to "+ oldNode); 
+    if (!newNode.isSenNode) {
+	newNode = this.makeNode(newNode);
+    }
+    newNode.parent = oldNode;
+    oldNode.children.push(newNode);
+    if (oldNode.closedEnd) {
+	oldNode.closedEnd = false;
+	newNode.closedEnd = true;
+    }
+    this.nodes.push(newNode);
+    return newNode;
 }
 
 SenTree.prototype.remove = function(node) {
     if (node.isRemoved) return;
-    log("removing " + node + " (parent: " + node.parent + ", children: " + node.children + ")");
+    //log("removing " + node + " (parent: " + node.parent + ", children: " + node.children + ")");
     if (node.parent.children.length == 1) {
         node.parent.children = node.children;
         if (node.children[0]) {
@@ -483,7 +485,7 @@ SenTree.prototype.remove = function(node) {
     }
     else {
         if (node.children.length > 1) {
-            log("can't remove a node with two children that itself has a sibling");
+            //log("can't remove a node with two children that itself has a sibling");
             return false;
         }
         var i = (node == node.parent.children[0]) ? 0 : 1;
@@ -500,41 +502,41 @@ SenTree.prototype.remove = function(node) {
 }
 
 SenTree.prototype.toString = function() {
-   // for debugging only
-   return "<table><tr><td align='center' style='font-family:monospace'>"+getTree(this.nodes[0])+"</td</tr></table>";
-   function getTree(node) {
-      var recursionDepth = arguments[1] || 0;
-      if (++recursionDepth > 40) return "<b>...<br>[max recursion]</b>";
-      var res = (node.used ? '.' : '') + node + (node.closedEnd ? "<br>x<br>" : "<br>");
-      if (node.children[1]) res += "<table><tr><td align='center' valign='top' style='font-family:monospace; border-top:1px solid #999; padding:3px; border-right:1px solid #999'>" + getTree(node.children[0], recursionDepth) + "</td>\n<td align='center' valign='top' style='padding:3px; border-top:1px solid #999; font-family:monospace'>" + getTree(node.children[1], recursionDepth) + "</td>\n</tr></table>";
-      else if (node.children[0]) res += getTree(node.children[0], recursionDepth);
-      return res;
-   }
+    // for debugging only
+    return "<table><tr><td align='center' style='font-family:monospace'>"+getTree(this.nodes[0])+"</td</tr></table>";
+    function getTree(node) {
+	var recursionDepth = arguments[1] || 0;
+	if (++recursionDepth > 40) return "<b>...<br>[max recursion]</b>";
+	var res = (node.used ? '.' : '') + node + (node.closedEnd ? "<br>x<br>" : "<br>");
+	if (node.children[1]) res += "<table><tr><td align='center' valign='top' style='font-family:monospace; border-top:1px solid #999; padding:3px; border-right:1px solid #999'>" + getTree(node.children[0], recursionDepth) + "</td>\n<td align='center' valign='top' style='padding:3px; border-top:1px solid #999; font-family:monospace'>" + getTree(node.children[1], recursionDepth) + "</td>\n</tr></table>";
+	else if (node.children[0]) res += getTree(node.children[0], recursionDepth);
+	return res;
+    }
 }
 
 SenTree.prototype.substitute = function(oldTerm, newTerm) {
     for (var i=0; i<this.nodes.length; i++) {
-        log("substituting "+oldTerm+" by "+newTerm+" in "+this.nodes[i].formula);
+        //log("substituting "+oldTerm+" by "+newTerm+" in "+this.nodes[i].formula);
         this.nodes[i].formula = this.nodes[i].formula.substitute(oldTerm, newTerm);
     }
 }
 
 SenTree.prototype.reverse = function(node1, node2) {
-   // swaps the position of two immediate successor nodes
-   node2.parent = node1.parent;
-   node1.parent = node2;
-   if (node2.parent.children[0] == node1) node2.parent.children[0] = node2;
-   else node2.parent.children[1] = node2;
-   node1.children = node2.children;
-   node2.children = [node1];
-   if (node1.children[0]) node1.children[0].parent = node1;
-   if (node1.children[1]) node1.children[1].parent = node1;
-   if (node2.closedEnd) {
-      node2.closedEnd = false;
-      node1.closedEnd = true;
-   }
-   node2.swappedWith = node1;
-   node1.swappedWith = node2;
+    // swaps the position of two immediate successor nodes
+    node2.parent = node1.parent;
+    node1.parent = node2;
+    if (node2.parent.children[0] == node1) node2.parent.children[0] = node2;
+    else node2.parent.children[1] = node2;
+    node1.children = node2.children;
+    node2.children = [node1];
+    if (node1.children[0]) node1.children[0].parent = node1;
+    if (node1.children[1]) node1.children[1].parent = node1;
+    if (node2.closedEnd) {
+	node2.closedEnd = false;
+	node1.closedEnd = true;
+    }
+    node2.swappedWith = node1;
+    node1.swappedWith = node2;
 }
 
 SenTree.prototype.getExpansion = function(node) {
@@ -592,9 +594,9 @@ SenTree.prototype.getCounterModel = function() {
     }
     if (!endNode) return null;
     
-    log("creating counterModel from endNode " + endNode);
+    //log("creating counterModel from endNode " + endNode);
     var model = new Model(this.fvTree.prover.modelfinder, 0, 0);
-   
+    
     // Next we set up the domain and map every term to a number in the
     // domain. Remember that f(a) may denote an individual that is not denoted
     // by any individual constant. A standard canonical model assigns to an
@@ -642,15 +644,15 @@ SenTree.prototype.getCounterModel = function() {
             var domain = this.fvParser.expressionType[term] &&
                 this.fvParser.expressionType[term].indexOf('world') > -1 ? // xxx does this work for function terms?
                 model.worlds : model.domain;
-            log("adding "+domain.length+" to domain for "+term);
+            //log("adding "+domain.length+" to domain for "+term);
             domain.push(domain.length);
             model.interpretation[rterm] = domain.length-1;
         }
         if (!model.satisfy(fla)) {
-            log("!!! model doesn't satisfy "+fla);
+            //log("!!! model doesn't satisfy "+fla);
             return null;
         }
-        log(model.toString());
+        //log(model.toString());
     } while ((node = node.parent));
     
     if (model.domain.length == 0) {
@@ -659,3 +661,4 @@ SenTree.prototype.getCounterModel = function() {
     return model;
 }
 
+module.exports = SenTree;

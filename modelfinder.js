@@ -1,3 +1,12 @@
+const {
+    Formula,
+    AtomicFormula,
+    QuantifiedFormula,
+    BinaryFormula,
+    ModalFormula,
+    NegatedFormula
+} = require('./formula.js');
+
 // Often there are simple countermodels that are hard to find through the tree
 // method; so we run a separate algorithm to find such countermodels.
 //
@@ -34,7 +43,7 @@ function ModelFinder(initFormulas, parser, accessibilityConstraints, s5) {
     // <initFormulas> is a list of demodalized formulas in NNF for which we try
     // to find a model; <accessibilityConstraints> is another such list, for
     // modal models; <s5> is boolean.
-    log("*** creating ModelFinder");
+    //log("*** creating ModelFinder");
     
     this.parser = parser;
     this.s5 = s5;
@@ -78,22 +87,22 @@ ModelFinder.prototype.getClauses = function(formulas) {
     var res = [];
     for (var i=0; i<formulas.length; i++) {
         var formula = formulas[i]; 
-        log('getting clauses from '+formula);
+        //log('getting clauses from '+formula);
         var distinctVars = this.makeVariablesDistinct(formula);
-        log('distinctVars: '+distinctVars);
+        //log('distinctVars: '+distinctVars);
         var skolemized = this.skolemize(distinctVars);
-        log('skolemized: '+skolemized);
+        //log('skolemized: '+skolemized);
         var quantifiersRemoved = skolemized.removeQuantifiers();
-        log('qantifiers removed: '+quantifiersRemoved);
+        //log('qantifiers removed: '+quantifiersRemoved);
         var clauses = this.tseitinCNF(quantifiersRemoved);
-        log('cnf: '+clauses);
+        //log('cnf: '+clauses);
         res = res.concatNoDuplicates(clauses);
     }
     // order clauses by length (number of disjuncts):
     res.sort(function(a,b){ return a.length - b.length; });
-    log('all clauses: '+res);
+    //log('all clauses: '+res);
     res = this.simplifyClauses(res);
-    log('simplified clauses: '+res);
+    //log('simplified clauses: '+res);
     return res;
 }
 
@@ -130,7 +139,7 @@ ModelFinder.prototype.makeVariablesDistinct = function(formula) {
 
 ModelFinder.prototype.skolemize = function(formula) {
     // return formula with existential quantifiers skolemized away
-    log('skolemizing '+formula);
+    //log('skolemizing '+formula);
     var boundVars = arguments[1] ? arguments[1].copy() : [];
     // log(formula.string+' bv: '+boundVars);
     var parser = this.parser;
@@ -184,7 +193,7 @@ ModelFinder.prototype.tseitinCNF = function(formula) {
     if (formula.type == 'literal') {
         return [[formula]];
     }
-    log('creating tseitin transform of '+formula);
+    //log('creating tseitin transform of '+formula);
     // collect all non-atomic subformulas:
     var subformulas = this.tseitinSubFormulas([formula]).removeDuplicates();
     // sort by increasing complexity:
@@ -194,13 +203,13 @@ ModelFinder.prototype.tseitinCNF = function(formula) {
     // Now introduce a new atomic formula for each non-literal subformula.
     if (!this.tseitsinFormulas) {
         this.tseitsinFormulas = {}; // subformula => formula, so that we use the
-                                    // same tseitsin formula for the same
-                                    // subformula in different <formula>s
+        // same tseitsin formula for the same
+        // subformula in different <formula>s
     }
     clauses = [];
     while (subformulas.length) {
         var subf = subformulas.shift();
-        log('  subformula '+subf)
+        //log('  subformula '+subf)
         var p = this.tseitsinFormulas[subf.string];
         if (!p) {
             var vars = this.parser.getVariables(subf); // optimise!
@@ -210,13 +219,13 @@ ModelFinder.prototype.tseitinCNF = function(formula) {
             // add 'p <-> S':
             var bicond = new BinaryFormula('↔', p, subf);
             clauses = clauses.concatNoDuplicates(this.cnf(bicond));
-            log('  adding clause for '+bicond+': '+clauses);
+            //log('  adding clause for '+bicond+': '+clauses);
         }
         // else log('subformula already known');
         if (subformulas.length == 0) {
             // add p itself:
             clauses = clauses.concatNoDuplicates([[p]]);
-            log('  adding tseitin formula '+p);
+            //log('  adding tseitin formula '+p);
         }
         // replace all occurrences of sentence in the list by p:
         for (var i=0; i<subformulas.length; i++) {
@@ -420,10 +429,10 @@ ModelFinder.prototype.nextStep = function() {
     // clause. If we succeed, we remove the entire clause and simplify the
     // remaining clauses.
 
-    log("** modelfinder: "+this.model.clauses);
-    log(this.model.curIntToString());
+    //log("** modelfinder: "+this.model.clauses);
+    //log(this.model.curIntToString());
     if (this.model.clauses.length == 0) {
-        log('done');
+        //log('done');
         return true;
     }
     var literal = this.model.clauses[0][0];
@@ -437,12 +446,12 @@ ModelFinder.prototype.nextStep = function() {
         // We ultimately don't care about the interpretation of tseitin
         // formulas, and if they occur in a unit clause, we have no choice of
         // how to interpret them.
-        log('applying unit resolution to '+literal);
+        //log('applying unit resolution to '+literal);
         this.model.unitResolve(literal);
         return false;
     }
 
-    log("trying to satisfy "+literal);
+    //log("trying to satisfy "+literal);
 
     // If we're processing this literal for the first time, we need to set up a
     // tentative interpretation of its terms and subterms. If we've backtracked
@@ -453,7 +462,7 @@ ModelFinder.prototype.nextStep = function() {
     }
     else {
         if (!this.model.iterateTermValues()) {
-            log("no more term interpretations to try: giving up");
+            //log("no more term interpretations to try: giving up");
             // try next disjunct in first clause on next attempt:
             this.model.clauses[0].shift();
             this.model.termValues = null;
@@ -473,9 +482,9 @@ ModelFinder.prototype.nextStep = function() {
         if (this.model.curInt[redAtom] === (atom != literal)) {
             // failure: literal is false; try with a different term
             // interpretation:
-            log("literal is false on present term interpretation");
+            //log("literal is false on present term interpretation");
             if (!this.model.iterateTermValues()) {
-                log("no more term interpretations to try: giving up");
+                //log("no more term interpretations to try: giving up");
                 this.model.clauses[0].shift();
                 this.model.termValues = null;
                 return false;
@@ -487,10 +496,10 @@ ModelFinder.prototype.nextStep = function() {
             this.alternativeModels.push(this.model.copy());
             if (this.model.curInt[redAtom] === undefined) {
                 // predicate is undefined for terms; extend its interpretation:
-                log('setting value for '+redAtom+' to '+(atom==literal));
+                //log('setting value for '+redAtom+' to '+(atom==literal));
                 this.model.curInt[redAtom] = (atom==literal);
             }
-            log("literal is satisfied: "+redAtom+" -> "+this.model.curInt[redAtom]);
+            //log("literal is satisfied: "+redAtom+" -> "+this.model.curInt[redAtom]);
             this.model.interpretation = this.model.curInt;
             this.model.termValues = null;
             this.model.clauses.shift();
@@ -501,9 +510,9 @@ ModelFinder.prototype.nextStep = function() {
 }
 
 ModelFinder.prototype.backtrack = function() {
-    log("backtracking");
+    //log("backtracking");
     if (this.alternativeModels.length == 0) {
-        log("no more models to backtrack; initializing larger model");
+        //log("no more models to backtrack; initializing larger model");
         var numWorlds = this.model.worlds.length;
         var numIndividuals = this.model.domain.length;
         if (numWorlds && this.parser.isPropositional) {
@@ -548,14 +557,14 @@ function Model(modelfinder, numIndividuals, numWorlds) {
     this.domain = Array.getArrayOfNumbers(numIndividuals);
     this.worlds = Array.getArrayOfNumbers(numWorlds);
     this.isModal = numWorlds > 0;
-    log('model domain '+this.domain+', worlds '+this.worlds);
+    //log('model domain '+this.domain+', worlds '+this.worlds);
 
     // initialize interpretation function:
     this.interpretation = {}; // e.g. 'a' => 0, '[f,0]' => 2, 'F[0]' => true
 
     // initialize clauses we need to satisfy:
     this.clauses = this.getDomainClauses();
-    log(this.clauses.length+" clauses");
+    //log(this.clauses.length+" clauses");
     
     // tentative interpretation of terms in current literal:
     this.termValues = null;
@@ -570,7 +579,7 @@ Model.prototype.getDomainClauses = function() {
     // ['Fx','xRy'] is turned into ['F0','0R0'], ['F0','0R1'], ['F1','1R0'],
     // ['F1','1R1'].
     res = [];
-    log('creating clauses for current domain(s)');
+    //log('creating clauses for current domain(s)');
     for (var c=0; c<this.modelfinder.clauses.length; c++) {
         var clause = this.modelfinder.clauses[c];
         // log('  clause '+clause);
@@ -602,9 +611,9 @@ Model.prototype.getDomainClauses = function() {
         }
     }
 
-    log('           clauses: '+res);
+    //log('           clauses: '+res);
     res = this.modelfinder.simplifyClauses(res);
-    log('simplified clauses: '+res);
+    //log('simplified clauses: '+res);
     return res;
 }
 
@@ -736,7 +745,7 @@ Model.prototype.initTermValues = function(literal) {
     // The actual termValues aren't pairs but quadruples, with further elements
     // 1 and 2, to speed up the code.
 
-    log("initializing termValues");
+    //log("initializing termValues");
     
     var atom = literal.sub || literal;
     var termIsOld = {};
@@ -788,7 +797,7 @@ Model.prototype.initTermValues = function(literal) {
     }
 
     this.termValues = terms;
-    log(this.termValues.toString());
+    //log(this.termValues.toString());
 }
 
 Model.prototype.getMaxValue = function(term, atom) {
@@ -859,7 +868,7 @@ Model.prototype.reduceTerms = function(terms, startIndex) {
 Model.prototype.iterateTermValues = function() {
     // try to minimally change the values in this.termValues
 
-    log("trying to iterate termValues");
+    //log("trying to iterate termValues");
     // Go through terms RTL:
     for (var i=this.termValues.length-1; i>=0; i--) {
         var tv = this.termValues[i];
@@ -879,7 +888,7 @@ Model.prototype.iterateTermValues = function() {
         tv[3]++;
         var redTerm = this.reduceArguments(tv[0]).toString();
         this.curInt[redTerm] = tv[3];
-        log('setting '+redTerm+' to '+tv[3]);
+        //log('setting '+redTerm+' to '+tv[3]);
         // Now recompute/reset the values of terms to the right:
         for (var j=i+1; j<this.termValues.length; j++) {
             var redTerm = this.reduceArguments(this.termValues[j][0]).toString();
@@ -891,7 +900,7 @@ Model.prototype.iterateTermValues = function() {
                 this.termValues[j][3] = null;
             }
         }
-        log(this.termValues.toString());
+        //log(this.termValues.toString());
         return true;
     }
     return false;
@@ -934,8 +943,8 @@ Model.prototype.simplifyRemainingClauses = function() {
     //
     // (c) Finally, we re-order the future clauses by number of literals.
 
-    log("simplifying remaining clauses:");
-    log(this.clauses.toString());
+    //log("simplifying remaining clauses:");
+    //log(this.clauses.toString());
     
     var nclauses = [];
     CLAUSELOOP:
@@ -974,7 +983,7 @@ Model.prototype.simplifyRemainingClauses = function() {
         }
         return a.length - b.length;
     });
-    log(nclauses.toString());
+    //log(nclauses.toString());
     this.clauses = nclauses;
 }
 
@@ -1021,96 +1030,96 @@ Model.prototype.copy = function() {
     return nmodel;
 }
 
-Model.prototype.toHTML = function() {
-    var str = "<table>";
+// CUSTOM: replace toHTML with toXML
+Model.prototype.toXML = function() {
+    // change world names from '0', '1', .. to 'w0', 'w1', ..: (maybe unnecessary?)
+    function w(n) {
+	return 'w' + n;
+    }
+    
+    let str = "<counter>";
     if (this.parser.isModal) {
-        // change world names from '0', '1', .. to 'w0', 'w1', ..:
-        function w(num) {
-            return 'w<sub>'+num+'</sub>';
-        }
-        str += "<tr><td align='right'>Worlds: </td><td align='left'>{ ";
-        str += this.worlds.map(function(n){return w(n)}).join(", ");
-        str += " }</td></tr>\n";
+	str += "<worlds>" + this.worlds.map((n) => w(n)).join(",") + "</worlds>";
+	
         if (!this.parser.isPropositional) {
-            str += "<tr><td align='right'>Individuals: </td><td align='left'>{ ";
-            str += this.domain.join(", ");
-            str += " }</td></tr>\n";
+            str += "<individuals>" + this.domain.join(",") + "</individuals>";
         }
     }
     else if (!this.parser.isPropositional) {
-        str += "<tr><td align='right'>Domain: </td><td align='left'>{ ";
-        str += this.domain.join(", ");
-        str += " }</td></tr>\n";
+	str += "<domain>" + this.domain.join(",") + "</domain>";
     }
-
+    
     // display constants and function symbols:
     // a: 0
     // f: { <0,1>, <1,1> }
     
-    var extensions = this.getExtensions();
-
-    for (var i=0; i<this.modelfinder.constants.length; i++) {
-        var sym = this.modelfinder.constants[i];
-        var ext = extensions[sym];
-        var val = sym == this.parser.w ? w(ext) : ext;
-        if (sym == this.parser.w) sym = '@';
-        str += "<tr><td align='right' class='formula'>" + sym + ": </td><td align='left'>" + val + "</td></tr>\n";
-    }
+    str += "<constants>";
+    const extensions = this.getExtensions();
     
-    for (var i=0; i<this.modelfinder.funcSymbols.length; i++) {
-        var sym = this.modelfinder.funcSymbols[i];
-        var ext = extensions[sym];
+    for (let sym of this.modelfinder.constants) {
+        const ext = extensions[sym];
+        const val = sym == this.parser.w ? w(ext) : ext;
+        if (sym == this.parser.w) sym = '@';
+	str += `<constant><name>${sym}</name><value>${val}</value></constant>`;
+    }
+    str += "</constants>";
+    
+    str += "<funcs>";
+    for (let sym of this.modelfinder.funcSymbols) {
+        const ext = extensions[sym];
+	let val;
         // ext is something like [1,2] or [[0,1],[1,1]]
         if (ext.length > 0 && !ext[0].isArray) {
             // extensions[sym] is something like [1,2]
-            var val = '{ '+ext.join(',')+' }';
+            val = ext.join(',');
         }
         else {
             // extensions[sym] is something like [[0,1],[1,1]]
-            var val = '{ '+ext.map(function(tuple) {
-                return '('+tuple.join(',')+')';
-            }).join(', ')+' }';
+            val = ext.map((tuple) => '('+tuple.join(',')+')').join(', ');
         }
-        str += "<tr><td align='right' class='formula'>" + sym + ": </td><td align='left'>" + val + "</td></tr>\n";
+        str += `<func><name>${sym}</name><definition>${val}</definition>`
     }
+    str += "</funcs>"
     
     // display predicates and proposition letters:
     // p: true/1
     // F: { 0,1 }
     // G: { <0,0>, <1,1> }
-
-    var isModal = this.parser.isModal;
-    var R = this.parser.R;
-    for (var i=0; i<this.modelfinder.predicates.length; i++) {
-        var sym = this.modelfinder.predicates[i];
-        var ext = extensions[sym];
-        var val;
+    
+    const isModal = this.parser.isModal;
+    const R = this.parser.R;
+    str += "<preds>";
+    for (let sym of this.modelfinder.predicates) {
+        const ext = extensions[sym];
+        let val;
         if (!ext.isArray) { // zero-ary
             val = ext;
         }
         else if (ext.length > 0 && !ext[0].isArray) {
             // ext is something like [1,2]
-            if (isModal) ext = ext.map(function(n){return w(n)});
-            val = '{ '+ext.join(',')+' }';
+            if (isModal) ext = ext.map((n) => w(n));
+            val = ext.join(',');
         }
         else {
             // ext is something like [[0,1],[1,1]]
-            val = '{ '+ext.map(function(tuple) {
+            val = ext.map((tuple) => {
                 if (isModal) {
                     tuple[tuple.length-1] = w(tuple[tuple.length-1]);
                     if (sym == R) tuple[0] = w(tuple[0]);
                 }
                 return '('+tuple.join(',')+')';
-            }).join(', ')+' }';
+            }).join(',');
         }
         if (sym == R && sym != 'R') {
-            // 'R' is used as predicate, our internal accessibility symbol won't mean much to the user
+            // CUSTOM: leaving this in, have not seen this actually work
+            // ORIGINALLY: 'R' is used as predicate, our internal accessibility symbol won't mean much to the user
             sym = 'Accessibility'
         }
-        str += "<tr><td align='right' class='formula'>" + sym + ": </td><td align='left'>" + val + "</td></tr>\n";
+	str += `<pred><name>${sym}</name><definition>${val}</definition></pred>`
     }
-
-    str += "</table>";
+    str += "</preds>";
+    
+    str += "</counter>";
     return str;
 }
 

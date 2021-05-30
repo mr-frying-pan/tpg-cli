@@ -394,3 +394,12 @@ NegatedFormula.prototype.substitute = function(origTerm, newTerm, shallow) {
     if (this.sub == nsub) return this;
     return new NegatedFormula(nsub);
 }
+
+module.exports = {
+    Formula,
+    AtomicFormula,
+    QuantifiedFormula,
+    BinaryFormula,
+    ModalFormula,
+    NegatedFormula
+};
