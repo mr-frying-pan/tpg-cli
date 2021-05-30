@@ -1194,3 +1194,5 @@ Model.prototype.curIntToString = function() {
     }
     return res;
 }
+
+module.exports = ModelFinder;
