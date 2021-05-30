@@ -120,6 +120,6 @@ Not yet implemented :(
 * Copyright
 
 Copyright © 2001-2021 Wolfgang Schwarz (wo@umsu.de) – original proof generator
-Copyright © 2021 Andrius Maliuginas – cli interface
+Copyright © 2021 Andrius Maliuginas – CLI interface
 
 You may use, distribute and modify this code under the terms of the GPLv3 license; see LICENSE.
