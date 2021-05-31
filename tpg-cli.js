@@ -39,7 +39,7 @@ function translateAccessibility(constraints) {
 
 var prover = null;
 var painter = null;
-function startProof(input, constraints, quiet) {
+function startProof(input, constraints) {
     var parser = new Parser();
     try {
 	var parsedInput = parser.parseInput(input);
@@ -91,28 +91,54 @@ function startProof(input, constraints, quiet) {
     return false;
 }
 
-process.exitCode = 10;
-try {
-    if (process.argv.length >= 5) {
-	startProof(process.argv[3], process.argv[4].split(""), process.argv[2] == "-q"); // -q formula accesibility
-    }
-    else if (process.argv.length == 4 && process.argv[2] != "-q") { // formula accessibility
-	startProof(process.argv[2], process.argv[3].split(""), false)
-    }
-    else if (process.argv.length == 4) { // -q formula
-	startProof(process.argv[3], [], process.argv[2])
-    }
-    else if (process.argv.length == 3) { // formula
-	startProof(process.argv[2], [], false)
-    }
-    else {
-	console.error("Please provide formula")
+function parseArgs(argv) {
+    const help = `
+Usage: ${argv[0]} ${argv[1]} FORMULA [ACCESSIBILITY]
+
+For FORMULA syntax see https://www.umsu.de/trees/, its the same as if you'd put it there.
+
+ACCESSIBILITY is a string of the following characters and their meanings:
+\tu\t universal (S5)
+\tr\t reflexive
+\tm\t symmetric
+\tt\t transitive
+\te\t euclidean
+\ts\t serial
+
+These correspond to checkboxes in https://www.umsu.de/trees/. E.g. use 'rmt' if you want accessibility to be reflexive, symmetric and transitive, order does not matter, 'mrt' will have the same effect.
+
+ACCESSIBILITY parameter is optional.
+
+For more information about proof process and parameter semantics see https://www.umsu.de/trees/.
+`;
+
+    // remove node and filename
+    argv.shift()
+    argv.shift()
+
+    // help prints
+    if (argv.length === 0 || argv[0] === '-h' || argv[0] === '--help') {
+	console.error(help);
 	process.exitCode = 2;
+	return { formula: undefined, accessibility: undefined };
+    }
+    else if (argv.length === 1) { // only formula passed
+	return { formula: argv[0], accessibility: [] };
+    }
+    else { // two or more params passed
+	return { formula: argv[0], accessibility: argv[1].split("") };
     }
 }
-catch (e) {
-    console.error(e);
-    console.error(process.argv);
-    console.error();
-    process.exitCode = 2;
+
+// random value to know what happens
+process.exitCode = 10;
+const { formula, accessibility } = parseArgs(process.argv);
+if (formula !== undefined) {
+    try {
+	startProof(formula, accessibility);
+    }
+    catch (e) {
+	console.error(e);
+	process.exitCode = 2;
+    }
 }
