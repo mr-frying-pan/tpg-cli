@@ -14,7 +14,7 @@ The only dependency is NodeJs.
 
 You can run this locally using the following command:
 ```bash
-$ node tpg.js <formula> <accessibility>
+$ node tpg-cli.js <formula> <accessibility>
 ```
 where `<formula>` is the same formula you'd put in the original generator and `<accessibility>` is a string of the
 following characters:
