@@ -115,8 +115,8 @@ tests = {
         prover.pauseLength = 0;
         prover.start();
         var sentree = new SenTree(prover.tree, parser);
-        assertEqual(sentree.nodes[1].formula.string, '¬∀x(Fa→Fx)');
-        assertEqual(sentree.nodes[2].formula.string, '¬(Fa→Fb)');
+        assertEqual(sentree.nodes[1].formula.string, '¬∀x(Fa → Fx)');
+        assertEqual(sentree.nodes[2].formula.string, '¬(Fa → Fb)');
     },
 
     catchSkolemTermsInFunctions: function() {
@@ -156,13 +156,44 @@ tests = {
 
     removeUnusedBranches: function() {
         var parser = new Parser();
-        var f = parser.parseFormula('(∀x∀y∀z((Ixy→Iyz)→Ixz)∧((IaW(a)∧IbW(b))∧(∀x∀y∀z(Ixy→(IzW(x)→IzW(y)))∧¬Iba)))').negate();
+        var f = parser.parseFormula('(∀x∀y∀z((Ixy→Iyz)→Ixz)∧((IaW(a)∧IbW(b))∧(∀x∀y∀z(Ixy→(IzW(x)→IzW(y)))∧¬Iba)))');
         var prover = new Prover([f], parser);
         prover.pauseLength = 0;
         prover.start();
         var sentree = new SenTree(prover.tree, parser);
-        assert(sentree.nodes.length, 15);
+        assert(sentree.nodes.length <= 15);
+    },
+
+    github14qml: function() {
+        var parser = new Parser();
+        var f = parser.parseFormula('((∀x((Ox∧Mx)→(◇(Ox∧Px)∧◇(Ox∧¬Px)))∧∃x(Ox∧Mx))∧(∀x((Ox∧Mx)→(◇(Ox∧Sx)∧◇(Ox∧¬Sx)))∧∃x(Ox∧Mx)))→(∃x(◇(Ox∧Sx)∧◇(Ox∧¬Px))∨¬∃x◇(Ox∧Sx))').negate();
+        var prover = new Prover([f], parser, ['universality']);
+        prover.pauseLength = 0;
+        prover.start();
+        var sentree = new SenTree(prover.tree, parser);
+        assert(sentree.nodes.length > 5);
+    },
+
+    rigididentity: function() {
+        var parser = new Parser();
+        var f = parser.parseFormula('a=b → □a=b').negate();
+        var prover = new Prover([f], parser);
+        prover.pauseLength = 0;
+        prover.start();
+        var sentree = new SenTree(prover.tree, parser);
+        assertEqual(sentree.nodes.length, 6);
+    },
+
+    rigididentity2: function() {
+        var parser = new Parser();
+        var f = parser.parseFormula('(□(□p→p)→□p)∧(□(□□p→□p)→□□p)∧(□(□¬□p→¬□p)→□¬□p)→(□p→□□p)').negate();
+        var prover = new Prover([f], parser);
+        prover.pauseLength = 0;
+        prover.start();
+        var sentree = new SenTree(prover.tree, parser);
+        assert(sentree.nodes.length >= 30);
     }
+        
     
     // getcountermodel: function() {
     //     var parser = new Parser();

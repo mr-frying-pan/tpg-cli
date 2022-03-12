@@ -15,18 +15,18 @@ tests = {
         var parser = new Parser();
         var mf = new ModelFinder([parser.parseFormula('p')], parser);
         var f = parser.parseFormula('∀x∃y(Fx∧∀zHxyz)');
-        f = f.normalize();
+        f = f.nnf();
         var sk = mf.skolemize(f);
-        assertEqual(sk.toString(), '∀x(Fx∧∀zHxf(x)z)');
+        assertEqual(sk.toString(), '∀x(Fx ∧ ∀zHxf(x)z)');
     },
     
     skolemize2: function() {
         var parser = new Parser();
         var mf = new ModelFinder([parser.parseFormula('p')], parser);
         var f = parser.parseFormula('∀x∃y∃zHxyz ∨ ∃v∀wGvw');
-        f = f.normalize();
+        f = f.nnf();
         var sk = mf.skolemize(f);
-        assertEqual(sk.string, '(∀xHxf(x)g(x)∨∀wGaw)');
+        assertEqual(sk.string, '(∀xHxf(x)g(x) ∨ ∀wGaw)');
     },
 
     cnf_basic: function() {
@@ -92,7 +92,15 @@ tests = {
         var m = new ModelFinder([parser.parseFormula('p')], parser);
         var f = parser.parseFormula("(¬Px∨((¬Py∨Pf(xy))∧(Qxg(x)∧(¬Pg(x)∨¬Rcg(x)))))");
         var cnf = m.cnf(f);
-        assertEqual(cnf.toString(), '[[Qxg(x),¬Px],[Pf(xy),¬Px,¬Py],[¬Pg(x),¬Px,¬Rcg(x)]]');
+        assertEqual(cnf.toString(), '[[Qxg(x),¬Px],[Pf(x,y),¬Px,¬Py],[¬Pg(x),¬Px,¬Rcg(x)]]');
+    },
+
+    cnfbicond: function(){
+        var parser = new Parser();
+        var m = new ModelFinder([parser.parseFormula('p')], parser);
+        var f = parser.parseFormula('r ↔ (p↔q)');
+        var cnf = m.cnf(f);
+        assertEqual(cnf.toString(), '[[q,¬p,¬r],[p,¬q,¬r],[p,q,r],[r,¬p,¬q]]');
     },
 
     tseitinCNF_basic: function() {
@@ -105,14 +113,15 @@ tests = {
         var cnf = m.tseitinCNF(parser.parseFormula('p∨q'));
         assertEqual(cnf.toString(), '[[$],[$,¬p],[$,¬q],[p,q,¬$]]');
         var cnf = m.tseitinCNF(parser.parseFormula('p∧q'));
-        assertEqual(cnf.toString(), '[[$2],[p,¬$2],[q,¬$2],[$2,¬p,¬q]]');
+        assertEqual(cnf.toString(), '[[p],[q]]');
+        // assertEqual(cnf.toString(), '[[$2],[p,¬$2],[q,¬$2],[$2,¬p,¬q]]');
     },
     
     // transformations2: function() {
     //     // example from http://www8.cs.umu.se/kurser/TDBB08/vt98b/Slides4/norm1_4.pdf
     //     var parser = new Parser();
     //     var f = parser.parseFormula('∀x(Px→(∀y(Py→Pf(x,y)))∧¬∀y(Qxy→(Py∧Rcy)))');
-    //     f = f.normalize();
+    //     f = f.nnf();
     //     var mf = new ModelFinder([f], parser);
     //     var cnf = mf.clauses;
     //     assertEqual(cnf.toString(), '[[¬Px,¬Py,Pf(xy)],[¬Px,Qxg(x)],[¬Px,¬Pg(x),¬Rcg(x)]]');
@@ -164,26 +173,30 @@ tests = {
         // skolem: Fx & Hxf(x)z
         // tseitin: p & (p<->(Fx & Hxf(x)z)
         // cnf: p & (~p v Fx) & (~p v Hxf(x)z)) & (p v ~Fx v ~Hxf(x)z) 
-        //    = p & (~p v Fx) & (~p v Hxf(x)z)) 
-        assertEqual(mf.clauses.toString(), '[[$xz],[Fx,¬$xz],[Hxf(x)z,¬$xz]]');
-        //assertEqual(mf.initFormulas.toString(), '[(Fx∧Hxf(x)z)]');
+        //    = p & (~p v Fx) & (~p v Hxf(x)z))
+        // assertEqual(mf.clauses.toString(), '[[$xz],[Fx,¬$xz],[Hxf(x)z,¬$xz]]');
+        // but since we don't tseitin expand conjunctions, we should simply get
+        // Fx & Hxf(x)z
+        assertEqual(mf.clauses.toString(), '[[Fx],[Hxf(x)z]]');
     },
 
     transformation2: function() {
         var parser = new Parser();
-        var f = parser.parseFormula('¬∃y∀x(Fy→Fx)').normalize();
+        var f = parser.parseFormula('¬∃y∀x(Fy→Fx)').nnf();
         var mf = new ModelFinder([f], parser);
         // skolem: Fy & ~Ff(y)
-        assertEqual(mf.clauses.toString(), '[[$y],[Fy,¬$y],[¬$y,¬Ff(y)]]');
+        // assertEqual(mf.clauses.toString(), '[[$y],[Fy,¬$y],[¬$y,¬Ff(y)]]');
+        assertEqual(mf.clauses.toString(), '[[Fy],[¬Ff(y)]]');
     },
 
     transformation3: function() {
         var parser = new Parser();
         var f = parser.parseFormula('◇p');
-        f = parser.translateFromModal(f).normalize();
+        f = parser.translateFromModal(f).nnf();
         var mf = new ModelFinder([f], parser);
         //assertEqual(mf.initFormulas.toString(), '[(Rwu∧pu)]');
-        assertEqual(mf.clauses.toString(), '[[$],[Rwu,¬$],[pu,¬$]]');
+        // assertEqual(mf.clauses.toString(), '[[$],[Rwu,¬$],[pu,¬$]]');
+        assertEqual(mf.clauses.toString(), '[[Rwu],[pu]]');
         assertEqual(parser.expressionType['u'], 'world constant');
     },
 
@@ -191,10 +204,12 @@ tests = {
         var parser = new Parser();
         var initflas = [parser.parseFormula('r∧p'), parser.parseFormula('q∧(r∧p)')];
         var m = new ModelFinder(initflas, parser);
-        assertEqual(m.clauses.toString(), '[[$],[$2],[r,¬$],[p,¬$],[q,¬$2]]');
+        // assertEqual(m.clauses.toString(), '[[$],[$2],[r,¬$],[p,¬$],[q,¬$2]]');
+        assertEqual(m.clauses.toString(), '[[r],[p],[q]]');
         initflas.push(parser.parseFormula('Fa'))
         m = new ModelFinder(initflas, parser);
-        assertEqual(m.clauses.toString(), '[[$3],[$4],[Fa],[r,¬$3],[p,¬$3],[q,¬$4]]');
+        // assertEqual(m.clauses.toString(), '[[$3],[$4],[Fa],[r,¬$3],[p,¬$3],[q,¬$4]]');
+        assertEqual(m.clauses.toString(), '[[r],[p],[q],[Fa]]');
     },
 
     modelclauses_quantified1: function() {
@@ -225,10 +240,12 @@ tests = {
         // skolemized: (Fx∧Hxf(x)z); tseitin-cnf: [$xz],[Fx,¬$xz],[Hxf(x)z,¬$xz],[$xz,¬Fx,¬Hxf(x)z]]');
         var mf = new ModelFinder(initflas, parser);
         var m = mf.model;
-        assertEqual(m.clauses.toString(), '[[$00],[F0,¬$00],[H0f(0)0,¬$00]]');
+        // assertEqual(m.clauses.toString(), '[[$00],[F0,¬$00],[H0f(0)0,¬$00]]');
+        assertEqual(m.clauses.toString(), '[[F0],[H0f(0)0]]');
         m = new Model(mf, 2, 0);
-        var correct = '[[$00],[$01],[$10],[$11],[F0,¬$00],[F0,¬$01],[F1,¬$10],[F1,¬$11],[H0f(0)0,¬$00],[H0f(0)1,¬$01],[H1f(1)0,¬$10],[H1f(1)1,¬$11]]'
+        // var correct = '[[$00],[$01],[$10],[$11],[F0,¬$00],[F0,¬$01],[F1,¬$10],[F1,¬$11],[H0f(0)0,¬$00],[H0f(0)1,¬$01],[H1f(1)0,¬$10],[H1f(1)1,¬$11]]'
         // reduces to [[F0],[F1],[H0f(0)0],[H0f(0)1],[H1f(1)0],[H1f(1)1]]
+        var correct = '[[F0],[F1],[H0f(0)0],[H0f(0)1],[H1f(1)0],[H1f(1)1]]';
         assertEqual(m.clauses.toString(), correct);
     },
 
@@ -264,7 +281,7 @@ tests = {
 
     countermodel4: function() {
         var parser = new Parser();
-        var f = parser.parseFormula('Ff(a)∧¬Ff(f(a))').normalize();
+        var f = parser.parseFormula('Ff(a)∧¬Ff(f(a))').nnf();
         var mf = new ModelFinder([f], parser);
         for (var i=0; i<100; i++) {
             if (mf.nextStep()) break;
@@ -294,7 +311,7 @@ tests = {
 
     countermodel7: function() {
         var parser = new Parser();
-        var fs = [parser.parseFormula('∀x∃yRxy ∧ ¬∃xRxx').normalize()];
+        var fs = [parser.parseFormula('∀x∃yRxy ∧ ¬∃xRxx').nnf()];
         var mf = new ModelFinder(fs, parser);
         for (var i=0; i<100; i++) {
             if (mf.nextStep()) break;
@@ -305,7 +322,7 @@ tests = {
 
     countermodel8a: function() {
         var parser = new Parser();
-        var fs = [parser.parseFormula('(∃xFx→∃xGx)→∀x(Fx→Gx)').negate().normalize()];
+        var fs = [parser.parseFormula('(∃xFx→∃xGx)→∀x(Fx→Gx)').negate().nnf()];
         var mf = new ModelFinder(fs, parser);
         for (var i=0; i<800; i++) {
             if (mf.nextStep()) break;
@@ -318,7 +335,7 @@ tests = {
 
     countermodel8: function() {
         var parser = new Parser();
-        var fs = [parser.parseFormula('∃y∀x(Fx→Gx) ↔ (∃xFx → ∃xGx)').negate().normalize()];
+        var fs = [parser.parseFormula('∃y∀x(Fx→Gx) ↔ (∃xFx → ∃xGx)').negate().nnf()];
         var mf = new ModelFinder(fs, parser);
         for (var i=0; i<500; i++) {
             if (mf.nextStep()) break;
@@ -326,14 +343,13 @@ tests = {
         assert(i<500);
         assertEqual(mf.model.domain.length, 2);
         log(mf.model.toString());
-        assert(mf.model.toString().indexOf('F: { 0,1 }') > 0);
-        // assert(mf.model.toString().indexOf('F: { 1 }') > 0); would do as well
-        assert(mf.model.toString().indexOf('G: { 0 }') > 0);
+        assert(mf.model.toString().indexOf('F: { 0 }') > 0);
+        assert(mf.model.toString().indexOf('G: { 1 }') > 0);
     },
 
     countermodel9: function() {
         var parser = new Parser();
-        var fs = [parser.parseFormula('∃y∃z∀x((Fx→Gy)∧(Gz→Fx))→∀x∃y(Fy↔Gy)').negate().normalize()];
+        var fs = [parser.parseFormula('∃y∃z∀x((Fx→Gy)∧(Gz→Fx))→∀x∃y(Fy↔Gy)').negate().nnf()];
         var mf = new ModelFinder(fs, parser);
         for (var i=0; i<500; i++) {
             if (mf.nextStep()) break;
@@ -346,7 +362,7 @@ tests = {
 
     countermodel10: function() {
         var parser = new Parser();
-        var fs = [parser.parseFormula('p→p').normalize()];
+        var fs = [parser.parseFormula('p→p').nnf()];
         var mf = new ModelFinder(fs, parser);
         for (var i=0; i<10; i++) {
             if (mf.nextStep()) break;
@@ -356,7 +372,7 @@ tests = {
      
     countermodel_shortestformulawith3individuals: function() {
         var parser = new Parser();
-        var fs = [parser.parseFormula('∀y∃x(Ryx ∧ ¬Rxy)').normalize()];
+        var fs = [parser.parseFormula('∀y∃x(Ryx ∧ ¬Rxy)').nnf()];
         var mf = new ModelFinder(fs, parser);
         for (var i=0; i<100; i++) {
             if (mf.nextStep()) break;
@@ -366,7 +382,7 @@ tests = {
 
     countermodel_shortestformulawith4individuals: function() { 
         var parser = new Parser();
-        var fs = [parser.parseFormula('∀z∀y∃x(Rzx ∧ ¬Rxy)').normalize()];
+        var fs = [parser.parseFormula('∀z∀y∃x(Rzx ∧ ¬Rxy)').nnf()];
         var mf = new ModelFinder(fs, parser);
         for (var i=0; i<10000; i++) {
             if (mf.nextStep()) break;
@@ -374,11 +390,22 @@ tests = {
         assert(i<10000);
         assertEqual(mf.model.domain.length, 4);
     },
-
+    
+    iterateTermValues: function() {
+        // If termValues aren't iterated properly a countermodel is found for this valid formula.
+        var parser = new Parser();
+        var fs = [parser.parseFormula('Na∧∀x(Nx→Nf(x))→Nf(f(f(f(f(a)))))').negate().nnf()];
+        var mf = new ModelFinder(fs, parser);
+        for (var i=0; i<1000; i++) {
+            if (mf.nextStep()) break;
+        }
+        assertEqual(i, 1000);
+    },
+    
     countermodel_modal1: function() {
         var parser = new Parser();
         var fs = [parser.parseFormula('◇p'), parser.parseFormula('¬p')];
-        fs = fs.map(function(f){return parser.translateFromModal(f).normalize()});
+        fs = fs.map(function(f){return parser.translateFromModal(f).nnf()});
         var mf = new ModelFinder(fs, parser);
         for (var i=0; i<100; i++) {
             if (mf.nextStep()) break;
@@ -392,7 +419,7 @@ tests = {
     countermodel_modal2: function() {
         var parser = new Parser();
         var fs = [parser.parseFormula('□p→p')];
-        fs = fs.map(function(f){return parser.translateFromModal(f).normalize()});
+        fs = fs.map(function(f){return parser.translateFromModal(f).nnf()});
         var mf = new ModelFinder(fs, parser);
         for (var i=0; i<100; i++) {
             if (mf.nextStep()) break;
@@ -403,7 +430,7 @@ tests = {
 
     countermodel_modal3: function() {
         var parser = new Parser();
-        var fs = [parser.translateFromModal(parser.parseFormula('□p')).normalize(),
+        var fs = [parser.translateFromModal(parser.parseFormula('□p')).nnf(),
                   parser.parseAccessibilityFormula('∀v∃u(Rvu)')];
         var mf = new ModelFinder(fs, parser);
         for (var i=0; i<100; i++) {
@@ -418,7 +445,7 @@ tests = {
         var parser = new Parser();
         var fs = [parser.parseFormula('□p')];
         fs = fs.map(function(f){
-            var f2 = parser.translateFromModal(f).normalize();
+            var f2 = parser.translateFromModal(f).nnf();
             return parser.stripAccessibilityClauses(f2);
         });
         var mf = new ModelFinder(fs, parser, [], true);
@@ -430,10 +457,31 @@ tests = {
         assert(mf.model.toString().indexOf('p: { w0 }') >= 0);
     },
 
+    totalfunctions1: function() {
+        var parser = new Parser();
+        var fs = [parser.parseFormula('f(a)=a∧¬Fb').negate().nnf()];
+        var mf = new ModelFinder(fs, parser);
+        for (var i=0; i<500; i++) {
+            if (mf.nextStep()) break;
+        }
+        assert(mf.model.toString().indexOf('f: { (0,0) }') > 0);
+    },
+
+    totalfunctions2: function() {
+        var parser = new Parser();
+        var fs = [parser.parseFormula('f(a)=a∧(Fa∨¬Fa)∧g(a,b)=a').negate().nnf()];
+        var mf = new ModelFinder(fs, parser);
+        for (var i=0; i<500; i++) {
+            if (mf.nextStep()) break;
+        }
+        assert(mf.model.toString().indexOf('f: { (0,1), (1,0) }') > 0);
+        assert(mf.model.toString().indexOf('g: { (0,0,0), (0,1,0), (1,0,0), (1,1,0) }') > 0);
+    },
+
     github_issue_3_chrome: function() {
         var parser = new Parser();
         var f = parser.parseFormula('(((∀x(Mx→(◇Px∧◇¬Px))∧∃xMx)∧(∀x(Sx→(◇Mx∧◇¬Mx))∧∃xSx))→(∀x(Sx→(◇Px∧◇¬Px))∧∃xSx))');
-        fs = [parser.translateFromModal(f).negate().normalize(),
+        fs = [parser.translateFromModal(f).negate().nnf(),
               parser.parseAccessibilityFormula('∀v∀uRvu'),
               parser.parseAccessibilityFormula('∀v∀u∀t(Rvu→(Rut→Rvt))'),
               parser.parseAccessibilityFormula('∀v∀u∀t(Rvu→(Rvt→Rut))')];
@@ -444,5 +492,5 @@ tests = {
         assert(i<1000);
         assertEqual(mf.model.worlds.length, 2);
     }
-    
+
 }

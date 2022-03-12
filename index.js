@@ -7,7 +7,7 @@ function updateInput() {
     // accessibility row
     var ostr = document.forms[0].flaField.value;
     if (ostr == flaFieldValue) {
-        // e.g. curser moved to highlight part of formula
+        // no change; e.g. curser moved to highlight part of formula
         return true;
     }
     cposition = this.selectionStart;
@@ -22,14 +22,15 @@ function renderSymbols(str) {
     str = str.replace(/&|\^| and/ig, '∧');
     str = str.replace(/ v | or/ig, ' ∨ '); // 'v' letter => or symbol
     str = str.replace(/~| not/ig, '¬');
-    str = str.replace(/<->| iff/ig, '↔');
-    str = str.replace(/->/g, '→');
+    str = str.replace(/<->|<=>| iff/ig, '↔');
+    str = str.replace(/->|=>| then/g, '→');
     str = str.replace(/\[\]/g, '□');
     str = str.replace(/<>|◊/g, '◇');
-    str = str.replace(/Ɐ/g, '∀');
-    str = str.replace(/\(A([s-z])\)/, '∀$1'); // (Ax) => ∀x
-    str = str.replace(/\(E([s-z])\)/, '∃$1'); // (Ex) => ∃x
-    str = str.replace(/(?:^|\W)\(([s-z])\)/, '∀$1'); // (x) => ∀x, but not f(x) => f∀x
+    str = str.replace(/!|Ɐ/g, '∀');
+    str = str.replace(/\?/g, '∃');
+    str = str.replace(/\(A([s-z])\)/g, '∀$1'); // (Ax) => ∀x
+    str = str.replace(/\(E([s-z])\)/g, '∃$1'); // (Ex) => ∃x
+    str = str.replace(/(?:^|\W)\(([s-z])\)/g, '∀$1'); // (x) => ∀x, but not f(x) => f∀x
     str = str.replace(/\\?forall[\{ ]?\}?/g, '∀');
     str = str.replace(/\\?exists[\{ ]?\}?/g, '∃');
     str = str.replace(/(\\neg|\\lnot)[\{ ]?\}?/g, '¬');
@@ -93,14 +94,17 @@ function startProof() {
     var parser = new Parser();
     try {
         var parsedInput = parser.parseInput(input);
-        var premises = parsedInput[0];
-        var conclusion = parsedInput[1];
-        var initFormulas = premises.concat([conclusion.negate()]);
     }
     catch (e) {
+        if (input.indexOf('v') > -1) {
+            e += "\nIf you mean disjunction by the letter 'v', put a space on either side.";
+        }
         alert(e);
         return false;
     }
+    var premises = parsedInput[0];
+    var conclusion = parsedInput[1];
+    var initFormulas = premises.concat([conclusion.negate()]);
     document.getElementById("intro").style.display = "none";
     document.getElementById("model").style.display = "none";
     document.getElementById("rootAnchor").style.display = "none";
@@ -147,9 +151,6 @@ function startProof() {
             }
             return; 
         }
-        if (parser.isModal) {
-            sentree.modalize();
-        }
         // Start painting the tree:
         document.getElementById("rootAnchor").style.display = "block";
         self.painter = new TreePainter(sentree, document.getElementById("rootAnchor"));
@@ -192,7 +193,11 @@ onload = function(e) {
         return false;
     }
     // start proof submitted via URL (e.g. from back button):
-    if (location.hash.length > 0) {
+    if (location.search.startsWith('?f=')) {
+        location.hash = location.search.substring(3);
+        hashChange();
+    }
+    else if (location.hash.length > 0) {
         hashChange();
     }
     document.forms[0].flaField.focus();
@@ -202,15 +207,17 @@ var hashSetByScript = false;
 function setHash() {
     // store input in URL when submitting the form:
     hashSetByScript = true; // prevent hashChange()
-    var hash = document.forms[0].flaField.value;
-    var accessibilityConstraints = [];
-    document.querySelectorAll('.accCheckbox').forEach(function(el) {
-        if (el.checked) {
-            accessibilityConstraints.push(el.id);
+    var hash = encodeInputToHash(document.forms[0].flaField.value);
+    if (document.getElementById('accessibilitySpan').style.display != 'none') {
+        var accessibilityConstraints = [];
+        document.querySelectorAll('.accCheckbox').forEach(function(el) {
+            if (el.checked) {
+                accessibilityConstraints.push(el.id);
+            }
+        });
+        if (accessibilityConstraints.length > 0) {
+            hash += '||'+accessibilityConstraints.join('|');
         }
-    });
-    if (accessibilityConstraints.length > 0) {
-        hash += '||'+accessibilityConstraints.join('|');
     }
     location.hash = hash;
 }
@@ -233,9 +240,9 @@ function hashChange() {
         document.getElementById("status").style.display = "none";
     }
     else {
-        var hash = decodeURIComponent(location.hash.substr(1).replace(/\+/g, '%20'));
+        var hash = location.hash.replace(/%7C/g, '|');
         var hashparts = hash.split('||');
-        document.forms[0].flaField.value = hashparts[0];
+        document.forms[0].flaField.value = decodeHashToInput(hashparts[0].substring(1));
         var accessibilityConstraints = hashparts[1] ? hashparts[1].split('|') : [];
         document.querySelectorAll('.accCheckbox').forEach(function(el) {
             el.checked = accessibilityConstraints.includes(el.id); 
@@ -245,6 +252,33 @@ function hashChange() {
     }
 }
 
+function encodeInputToHash(input) {
+    /**
+     * convert the string in the input field into something that can safely be
+     * put in the URL
+     */
+    var symbols = ' ∧∨¬↔→∀∃□◇';
+    inputNoSpaces = input.replace(/\s/g, '');
+    var hash = inputNoSpaces.replace(new RegExp('['+symbols+']', 'g'), function(match) {
+        return '~'+symbols.indexOf(match);
+    });
+    return hash;
+}
+
+function decodeHashToInput(hash) {
+    /**
+     * invert encodeInputToHash
+     */
+    if (hash.indexOf('%') > -1) {
+        // old way of specifing input in URL hash, and use of unusual symbols
+        hash = decodeURIComponent(hash.replace(/\+/g, '%20'));
+    }
+    var symbols = ' ∧∨¬↔→∀∃□◇';
+    return hash.replace(/~./g, function(match) {
+        return symbols[parseInt(match[1])];
+    });
+}
+
 // functions to export tree as png:
 
 function addExportButtons() {
@@ -252,12 +286,12 @@ function addExportButtons() {
     el.id = 'exportDiv';
     el.style.position = 'absolute';
     var treeCoords = getTreeCoords();
-    el.style.top = treeCoords.bottom-treeCoords.top+'px';
-    var width = treeCoords.right-treeCoords.left;
+    el.style.top = (treeCoords.bottom-treeCoords.top)/painter.scale + 'px';
+    var width = (treeCoords.right-treeCoords.left)/painter.scale;
     el.style.width = width+'px';
     el.style.left = Math.round(width/-2) +'px'
     el.innerHTML = '<button onclick="exportImage()">save as png</button>';
-    this.rootAnchor.appendChild(el);
+    painter.rootAnchor.firstChild.appendChild(el);
 }
 
 function getTreeCoords() {

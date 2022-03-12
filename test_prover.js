@@ -13,10 +13,9 @@ tests = {
         assertEqual(prover.tree.closedBranches.length, 1);
     },
 
-
     pruneBranch: function() {
         var parser = new Parser();
-        var f = parser.parseFormula('(¬R∧¬S∧((R∧¬S)∨(¬R∧S))∧(Q∨P))').normalize();
+        var f = parser.parseFormula('(¬R∧¬S∧((R∧¬S)∨(¬R∧S))∧(Q∨P))').nnf();
         var prover = new Prover([f], parser);
         prover.pauseLength = 0;
         prover.start();
@@ -70,13 +69,30 @@ tests = {
         prover.start();
         var nodes = prover.tree.closedBranches[0].nodes;
         for (var i=0; i<nodes.length; i++) {
-            if (nodes[i].formula.string == '(¬Ac∨Tc)') {
+            if (nodes[i].formula.string == '(¬Ac ∨ Tc)') {
                 assert(nodes[i].used != '');
                 return;
             }
         }
         assert(false)
     },
+
+    equality1: function() {
+        // checks that termsNode properties in equality problems are
+        // adjusted when trees are copied for backtracking
+        var parser = new Parser();
+        var f = parser.parseFormula('∀x(g(x)=f(x) ∨ ¬(x=a)) ∧ ∀x(g(f(x))=x) ∧ b=c ∧ Pg(g(a))b → Pac').negate();
+        var prover = new Prover([f], parser);
+        prover.pauseLength = 0;
+        prover.start();
+        assertEqual(prover.tree.openBranches.length, 0);
+        var numUsed = 0;
+        var nodes = prover.tree.closedBranches[0].nodes;
+        for (var i=0; i<nodes.length; i++) {
+            if (nodes[i].used) numUsed++;
+        }
+        assert(numUsed > 10);
+    },    
 
     modalT: function() {
         var parser = new Parser();
@@ -95,6 +111,15 @@ tests = {
         assertEqual(prover.tree.openBranches.length, 1);
     },    
 
+    modalEuclidean: function() {
+        var parser = new Parser();
+        var f = parser.parseFormula('□p→□□p').negate();
+        var prover = new Prover([f], parser, ['reflexivity', 'euclidity']);
+        prover.pauseLength = 0;
+        prover.start();
+        assertEqual(prover.tree.openBranches.length, 0);
+    },
+
     modalG1: function() {
         var parser = new Parser();
         var f = parser.parseFormula('◇□p→□◇p').negate();
@@ -103,7 +128,7 @@ tests = {
             prover.pauseLength = 0;
             prover.start();
             assertEqual(prover.tree.openBranches.length, 0);
-            var numNodes = c == 'universality' ? 7 : 14;
+            var numNodes = c == 'universality' ? 7 : 11;
             assertEqual(prover.tree.closedBranches[0].nodes.length, numNodes);
         });
         var prover = new Prover([f], parser);
