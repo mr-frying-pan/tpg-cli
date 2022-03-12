@@ -226,7 +226,7 @@ Prover.prototype.storeAlternatives = function(altTrees) {
      * add <altTrees> as alternatives to be explored after the current tree;
      * remove redundant alternatives
      */
-    log("storing "+altTrees.length+" alternatives");
+    //log("storing "+altTrees.length+" alternatives");
     var insertPosition = this.curAlternativeIndex+1;
     for (var i=0; i<altTrees.length; i++) {
         this.alternatives.splice(insertPosition, 0, altTrees[i]);
@@ -235,8 +235,8 @@ Prover.prototype.storeAlternatives = function(altTrees) {
             insertPosition++;
         }
     }
-    log("There are now "+this.alternatives.length+' alternatives');
-    log(this.alternatives.map(function(t,i) { return "alternative "+i+":"+t }).join('<br>')); 
+    //log("There are now "+this.alternatives.length+' alternatives');
+    //log(this.alternatives.map(function(t,i) { return "alternative "+i+":"+t }).join('<br>')); 
 }
 
 Prover.prototype.pruneAlternatives = function(tree) {
@@ -245,19 +245,19 @@ Prover.prototype.pruneAlternatives = function(tree) {
      * has been added or altered; might remove <tree> itself if it is found redundant;
      * removed trees get attribute 'removed'
      */
-    log("pruning alternatives");
+    //log("pruning alternatives");
     for (var i=0; i<this.alternatives.length; i++) {
         if (this.alternatives[i] == tree) continue;
         var keepWhich = this.keepWhichTree(tree, this.alternatives[i]);
         var keepTree = keepWhich[0];
         var keepAlt = keepWhich[1];
         if (!keepTree) {
-            log("removing tree<br>"+tree+"<br>in favour of alternative<br>"+this.alternatives[i]);
+            //log("removing tree<br>"+tree+"<br>in favour of alternative<br>"+this.alternatives[i]);
             this.removeAlternative(this.alternatives.indexOf(tree));
             return;
         }
         else if (!keepAlt) {
-            log("removing alternative<br>"+this.alternatives[i]+"<br>in favour of<br>"+tree);
+            //log("removing alternative<br>"+this.alternatives[i]+"<br>in favour of<br>"+tree);
             this.removeAlternative(i);
             i--;
         }
@@ -276,11 +276,11 @@ Prover.prototype.keepWhichTree = function(tree, altTree) {
             return [true, true];
         }
         else if (tree.numNodes < altTree.numNodes) {
-            log('alternative has same open branches and is larger; removing');
+            //log('alternative has same open branches and is larger; removing');
             return [true, false];
         }
         else {
-            log('tree has same open branches as alternative; removing');
+            //log('tree has same open branches as alternative; removing');
             return [false, true];
         }
     }
@@ -291,11 +291,11 @@ Prover.prototype.keepWhichTree = function(tree, altTree) {
         return [true, true];
     }
     if (treeHasUnmatchedBranches) {
-        log('tree has extra open branches compared to alternative; removing');
+        //log('tree has extra open branches compared to alternative; removing');
         return [false, true];
     }
     if (altTreeHasUnmatchedBranches) {
-        log('alternative has extra open branches; removing');
+        //log('alternative has extra open branches; removing');
         return [true, false];
     }
     // The trees have the same open branches. We check if one tree is more
@@ -306,12 +306,12 @@ Prover.prototype.keepWhichTree = function(tree, altTree) {
     var altTreeNodes = altTree.openBranches[0].nodes;
     if (altTreeNodes.length > treeNodes.length &&
         tree.openBranches[0].todoList[0].nextRule != Prover.equalityReasoner) {
-        log('tree is less developed than alternative; removing it');
+        //log('tree is less developed than alternative; removing it');
         return [false, true];
     }
     else if (treeNodes.length > altTreeNodes.length &&
              altTree.openBranches[0].todoList[0].nextRule != Prover.equalityReasoner) {
-        log('tree is more developed than alternative; removing alternative');
+        //log('tree is more developed than alternative; removing alternative');
         return [true, false];
     }
     else return [true, true];
@@ -364,7 +364,7 @@ Prover.prototype.removeAlternative = function(index) {
     /**
      * remove alternative at position <index> from this.alternatives
      */
-    log("removing alternative "+index+" of "+this.alternatives.length);
+    //log("removing alternative "+index+" of "+this.alternatives.length);
     this.alternatives[index].removed = true;
     if (index == this.curAlternativeIndex) {
         this.discardCurrentAlternative();
@@ -385,7 +385,7 @@ Prover.prototype.discardCurrentAlternative = function() {
     if (this.curAlternativeIndex == this.alternatives.length) {
         this.curAlternativeIndex = 0;
     }
-    log("discarding current alternative; switching to alternative "+this.curAlternativeIndex);
+    //log("discarding current alternative; switching to alternative "+this.curAlternativeIndex);
     if (this.alternatives.length) {
         // don't make this.tree undefined if there are no more alternatives
         this.tree = this.alternatives[this.curAlternativeIndex];
@@ -650,18 +650,18 @@ Prover.literal = function(branch, nodeList) {
     var altTrees = [];
     var localTree = null;
     for (var i=0; i<unifiers.length; i++) {
-        log("processing unifier (on new tree): "+unifiers[i]);
+        //log("processing unifier (on new tree): "+unifiers[i]);
         var altTree = tree.copy();
         altTree.applySubstitution(unifiers[i]);
         altTree.closeCloseableBranches();
         if (altTree.openBranches.length == 0) {
-            log('tree closes, stopping proof search');
+            //log('tree closes, stopping proof search');
             prover.useTree(altTree);
             return;
         }
         if (!localTree) {
             if (!branch.unifierAffectsOtherBranches(unifiers[i])) {
-                log("That unifier didn't affect other branches.");
+                //log("That unifier didn't affect other branches.");
                 localTree = altTree;
             }
             else {
@@ -670,7 +670,7 @@ Prover.literal = function(branch, nodeList) {
         }
     }
     if (localTree) {
-        log("continuing with unifier that doesn't affect other branches");
+        //log("continuing with unifier that doesn't affect other branches");
         prover.useTree(localTree);
         prover.pruneAlternatives(localTree);
         return;
@@ -680,10 +680,10 @@ Prover.literal = function(branch, nodeList) {
     // rule. In particular, we could try to close the branch with an equality
     // rule.
     if (tree.parser.hasEquality) {
-        log("checking if we could apply equality reasoning (on original tree)");
+        //log("checking if we could apply equality reasoning (on original tree)");
         var eqProbs = branch.createEqualityProblems(nodeList);
         if (eqProbs.length) {
-            log("scheduling equality problem(s) (on a new tree): "+eqProbs);
+            //log("scheduling equality problem(s) (on a new tree): "+eqProbs);
             var altTree = tree.copy();
             altTree.openBranches[0].todoList = eqProbs.map(function(p) {
                 return Prover.makeTodoItem(Prover.equalityReasoner, p);
@@ -704,7 +704,7 @@ Prover.literal = function(branch, nodeList) {
         return;
     }
     else if (branch.todoList.length) {
-        log("storing original tree as alternative");
+        //log("storing original tree as alternative");
         altTrees.push(tree);
     }
     // We continue with the first altTree and store the others for backtracking.
@@ -712,7 +712,7 @@ Prover.literal = function(branch, nodeList) {
     prover.alternatives.splice(curTreeIndex, 1);
     if (altTrees.length) {
         do {
-            log("switching to first alternative");
+            //log("switching to first alternative");
             var newTree = altTrees.shift();
             prover.useTree(newTree, curTreeIndex);
             prover.pruneAlternatives(newTree);
@@ -732,16 +732,16 @@ Prover.equalityReasoner = function(branch, equalityProblem) {
      * This method follows a similar logic to Prover.literal.
      */
 
-    log('tackling equality problem '+equalityProblem);
+    //log('tackling equality problem '+equalityProblem);
 
     // equalityProblem.nextStep returns a list of EqualityProblems beginning
     // with solved problems (if any) and continuing with problems that have
     // extended the original problem by zero or one application of (LL*).
     var newProblems = equalityProblem.nextStep();
-    log("equality reasoning returned "+newProblems);
+    //log("equality reasoning returned "+newProblems);
 
     if (newProblems.length == 0) {
-        log("equalityProblem exhausted; no further rules to schedule");
+        //log("equalityProblem exhausted; no further rules to schedule");
         if (!branch.todoList[0]) {
             // We've already saved an alternative on which we continue with the
             // rest of the todoList (in literal()); so we can discard the
@@ -768,12 +768,12 @@ Prover.equalityReasoner = function(branch, equalityProblem) {
         var substitution = solution.getSubstitution();
         // We could enforce a check that the solution makes use of newly added
         // equalities, but in tests this doesn't speed things up.
-        log("applying solution "+solution);
+        //log("applying solution "+solution);
         var altTree = tree.copy();
         altTree.openBranches[0].closeWithEquality(solution);
         altTree.closeCloseableBranches();
         if (altTree.openBranches.length == 0) {
-            log('that tree closes, stopping proof search');
+            //log('that tree closes, stopping proof search');
             prover.useTree(altTree);
             return;
         }
@@ -787,7 +787,7 @@ Prover.equalityReasoner = function(branch, equalityProblem) {
         }
     }
     if (localTree) {
-        log("continuing with solution that doesn't affect other branches");
+        //log("continuing with solution that doesn't affect other branches");
         prover.useTree(localTree);
         prover.pruneAlternatives(localTree);
         return;
@@ -796,7 +796,7 @@ Prover.equalityReasoner = function(branch, equalityProblem) {
     // We also consider the option of continuing with unsolved EqualityProblems
     // in order to find another solution (using the current tree)
     if (newProblems.length) {
-        log("scheduling revised non-solution problems");
+        //log("scheduling revised non-solution problems");
         var newTasks = newProblems.map(function(p) {
             return Prover.makeTodoItem(Prover.equalityReasoner, p);
         });
@@ -823,7 +823,7 @@ Prover.equalityReasoner = function(branch, equalityProblem) {
     prover.alternatives.splice(curTreeIndex, 1);
     if (altTrees.length) {
         do {
-            log("switching to first alternative");
+            //log("switching to first alternative");
             var newTree = altTrees.shift();
             prover.useTree(newTree, curTreeIndex);
             prover.pruneAlternatives(newTree);
@@ -1169,7 +1169,7 @@ Tree.prototype.removeNode = function(branch, index) {
     /**
      * remove node with index <index> on branch <branch> from this tree
      */
-    log("removing node "+branch.nodes[index]);
+    //log("removing node "+branch.nodes[index]);
     var node = branch.nodes[index];
     var branches = this.openBranches.concat(this.closedBranches);
     for (var i=0; i<branches.length; i++) {
@@ -1459,7 +1459,7 @@ Branch.prototype.tryClose = function(node, dontPrune) {
         }
     }
     if (complNode) {
-        log("+++ branch closed +++");
+        //log("+++ branch closed +++");
         this.tree.closeBranch(this, node, complNode);
         if (!dontPrune) {
             this.tree.prover.pruneAlternatives(this.tree);
@@ -1642,7 +1642,7 @@ Branch.prototype.getClosingUnifiers = function(node) {
      * that allow closing the branch 
      */
 
-    log("checking if "+node+" can be made complementary with other node on the branch");
+    //log("checking if "+node+" can be made complementary with other node on the branch");
     var nodeAtom = node.formula.sub || node.formula;
     var unifiersHash = {}; // for duplicate detection
     for (var i=this.literals.length-1; i>=0; i--) {
@@ -1652,17 +1652,17 @@ Branch.prototype.getClosingUnifiers = function(node) {
         var otherAtom = otherNode.formula.sub || otherNode.formula;
         if (otherAtom.predicate != nodeAtom.predicate) continue;
         var u = Formula.unifyTerms(nodeAtom.terms, otherAtom.terms);
-        log("unification with "+otherNode+" "+(u===false ? "impossible" : "possible: "+u));
+        //log("unification with "+otherNode+" "+(u===false ? "impossible" : "possible: "+u));
         if (u.isArray) {
             unifiersHash[u.toString()] = u;
         }
     }
     
     if (nodeAtom.predicate == '=' && node.formula.sub) {
-        log("checking if "+node+" can be turned into ¬(Φ=Φ)");
+        //log("checking if "+node+" can be turned into ¬(Φ=Φ)");
         var u = Formula.unifyTerms([nodeAtom.terms[0]], [nodeAtom.terms[1]]);
         if (u.isArray) {
-            log("yes: "+u);
+            //log("yes: "+u);
             unifiersHash[u.toString()] = u;
         }
     }
@@ -1732,7 +1732,7 @@ Branch.prototype.createEqualityProblem = function(node1, node2) {
     });
     if (!equations.length) return null;
     equations.reverse(); // prefer applying LL to late equations
-    log('creating equality problem based on '+(node1==node2 ? node1 : node1+' and '+node2));
+    //log('creating equality problem based on '+(node1==node2 ? node1 : node1+' and '+node2));
     var prob = new EqualityProblem();
     prob.init(equations, node1, node2);
     return prob;

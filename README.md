@@ -125,6 +125,7 @@ inputs. If yes, then problem is there, if no, then please open an issue here, I'
 # Copyright
 
 Copyright © 2001-2021 Wolfgang Schwarz (wo@umsu.de) – original proof generator
-Copyright © 2021 Andrius Maliuginas – CLI interface
+
+Copyright © 2021 me :) – CLI interface
 
 You may use, distribute and modify this code under the terms of the GPLv3 license; see LICENSE.
