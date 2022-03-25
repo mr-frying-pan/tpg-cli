@@ -1,5 +1,6 @@
 const { Prover, Node } = require('./prover.js');
 const {
+    Formula,
     AtomicFormula,
 } = require('./formula.js');
 
