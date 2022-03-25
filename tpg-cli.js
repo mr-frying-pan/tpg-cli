@@ -128,7 +128,7 @@ For more information about proof process and parameter semantics see https://www
 	return { formula: argv[0], accessibility: [] };
     }
     else { // two or more params passed
-	return { formula: argv[0], accessibility: argv[1].split("") };
+	return { formula: renderSymbols(argv[0]), accessibility: argv[1].split("") };
     }
 }
 
