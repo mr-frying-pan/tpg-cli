@@ -55,12 +55,12 @@ SenTree.prototype.findComplementaryNodesOnBranch = function(branch) {
                 || (n2.formula.operator == '¬' && n2.formula.sub.string == n1.formula.string)) {
                 if (n1.formula.world == n2.formula.world) {
                     lastNode.closedBy = [n1, n2];
-                    log("complementary nodes: "+n1+", "+n2);
+                    //log("complementary nodes: "+n1+", "+n2);
                     return;
                 }
                 else if (n1.formula.predicate == '=' || n2.formula.predicate == '=') {
                     lastNode.closedBy = null;
-                    log("complementary nodes (rigid identity): "+n1+", "+n2);
+                    //log("complementary nodes (rigid identity): "+n1+", "+n2);
                     this.insertRigidIdentity(n1, n2);
                     return;
                 }
@@ -137,7 +137,7 @@ SenTree.prototype.transferNodes = function() {
             }
             // <node> not yet collected, <par> is its (already collected) parent
             par = this.transferNode(node, par);
-            log(this.toString());
+            //log(this.toString());
         }
     }
     // insert double negation elimination steps (best done here, after all alpha
@@ -158,7 +158,7 @@ SenTree.prototype.transferNodes = function() {
             for (var j=0; j<node.fromNodes.length; j++) {
                 var from = node.fromNodes[j];
                 while (from.dneTo) from = from.dneTo;
-                log("changing source "+j+" of "+node+" from "+node.fromNodes[j]+" to "+node.fromNodes[j])
+                //log("changing source "+j+" of "+node+" from "+node.fromNodes[j]+" to "+node.fromNodes[j])
                 node.fromNodes[j] = from;
             }
         }
@@ -352,7 +352,7 @@ SenTree.prototype.transferNode = function(node, par) {
         // Identity. 
         var from1 = node.fromNodes[0]; // the equality node, possibly double-negated
         var from2 = node.fromNodes[1];
-        log("transferring "+node+" (equality from "+from1+" and "+from2+")");
+        //log("transferring "+node+" (equality from "+from1+" and "+from2+")");
         var identityFla = from1.formula;
         while (identityFla.sub) identityFla = identityFla.sub.sub;
         if (identityFla.terms.length == 3) {
@@ -369,7 +369,7 @@ SenTree.prototype.transferNode = function(node, par) {
             }
             var nodeWorld = nodeTerms[nodeTerms.length-1];
             if (nodeWorld != identityWorld) {
-                log("inserting rigid identity node "+identityFla+" "+identityWorld+" => "+nodeWorld);
+                //log("inserting rigid identity node "+identityFla+" "+identityWorld+" => "+nodeWorld);
                 var newTerms = identityFla.terms.copy();
                 newTerms[2] = nodeWorld;
                 var newFormula = new AtomicFormula('=', newTerms);
@@ -386,7 +386,7 @@ SenTree.prototype.transferNode = function(node, par) {
     }
         
     default: {
-        log(node.fromRule)
+        //log(node.fromRule)
         this.appendChild(par, node);
         return node;
     }
@@ -465,7 +465,7 @@ SenTree.prototype.replaceFreeVariablesAndSkolemTerms = function() {
                 this.parser.getNewWorldName(true) : this.parser.getNewConstant();
             substitutions.push([term, repl]);
             node.formula = node.formula.substitute(term, repl, false, true);
-            log("replacing new skolem term "+term+" by "+repl+": "+node.formula);
+            //log("replacing new skolem term "+term+" by "+repl+": "+node.formula);
             // skolem terms can be nested:
             skterms = Formula.substituteInTerms(skterms, term, repl);
         }

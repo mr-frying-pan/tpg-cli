@@ -1112,7 +1112,7 @@ Model.prototype.isRedundant = function(checkWorldTerms) {
             if (unusedEls.length == 0) break;
         }
         if (val > unusedEls[0]) {
-            log("interpretation should assign "+unusedEls[0]+" instead of "+val+" to "+term);
+            //log("interpretation should assign "+unusedEls[0]+" instead of "+val+" to "+term);
             return true;
         }
     }

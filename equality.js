@@ -144,7 +144,7 @@ EqualityProblem.prototype.start = function() {
      * ways; return a list of resulting problems, with any solved ones
      * coming first.
      */
-    log("starting; trying rrbs");
+    //log("starting; trying rrbs");
     return this.tryRrbs();
 }
 
@@ -182,7 +182,7 @@ EqualityProblem.prototype.tryRrbs = function() {
     var equations = this.lastStep == this.tryLrbs ?
         [this.equations[this.lrbsIndex]] : this.equations;
 
-    log('# trying rrbs');
+    //log('# trying rrbs');
     
     // Instead of recursively calling other applications of rrbs or lrbs, we
     // collect these recursive calls in a list, which we return (so that the
@@ -196,11 +196,11 @@ EqualityProblem.prototype.tryRrbs = function() {
     for (var i=0; i<this.terms1.length; i++) {
         
         // don't need to do anything if s[i] is already identical to t[i]:
-        log("checking if candidate terms "+this.terms1[i]+" and "+this.terms2[i]+" can be unified");
+        //log("checking if candidate terms "+this.terms1[i]+" and "+this.terms2[i]+" can be unified");
         var nc = this.constraint.tryAddEqual(this.terms1[i], this.terms2[i]);
         if (nc && nc == this.constraint) {
             // don't continue merely because nc exists; see commit from 15/07/21
-            log("terms are already equal");
+            //log("terms are already equal");
             continue;
         }
 
@@ -209,7 +209,7 @@ EqualityProblem.prototype.tryRrbs = function() {
             var s = sIsTerms1 ? this.terms1 : this.terms2;
             var t = sIsTerms1 ? this.terms2 : this.terms1;
             
-            log('trying rrbs with '+s[i]+' as si and '+t[i]+' as ti');
+            //log('trying rrbs with '+s[i]+' as si and '+t[i]+' as ti');
         
             // rrbs can only be applied if the constraint is compatible with si>ti:
             var fconstraint = this.constraint.tryAddGreater(s[i],t[i]);
@@ -225,7 +225,7 @@ EqualityProblem.prototype.tryRrbs = function() {
                 for (var lIsLHS=1; lIsLHS>=0; lIsLHS--) {
                     var l = equations[ei].formula.terms[lIsLHS ? 0 : 1];
                     var r = equations[ei].formula.terms[lIsLHS];
-                    log('  trying '+l+' as l and '+r+' as r');
+                    //log('  trying '+l+' as l and '+r+' as r');
 
                     // rrbs can only be applied if constraint is compatible with l>r:
                     var sconstraint = fconstraint.tryAddGreater(l,r);
@@ -234,7 +234,7 @@ EqualityProblem.prototype.tryRrbs = function() {
                     // try all subterms of si as candidates for p:
                     for (var j=0; j<siSubterms.length; j++) {
                         var p = siSubterms[j];
-                        log('  trying '+p+' as p');
+                        //log('  trying '+p+' as p');
 
                         // rrbs can only be applied if constraint is compatible with l=p:
                         var tconstraint = sconstraint.tryAddEqual(l,p)
@@ -245,31 +245,31 @@ EqualityProblem.prototype.tryRrbs = function() {
                         // go through all occurrences.
                         var new_sis = replaceSubterm(s[i], p, r);
                         for (var g=0; g<new_sis.length; g++) {
-                            log('rrbs constraints satisfied: replacing '+s[i]+' by '+new_sis[g]);
+                            //log('rrbs constraints satisfied: replacing '+s[i]+' by '+new_sis[g]);
                             var newProblem = this.copy(tconstraint);
                             newProblem.applyLLtoGoal(i, sIsTerms1, new_sis[g], equations[ei]);
                             newProblem.lastStep = this.tryRrbs;
-                            log('scheduling new problem '+newProblem+'; checking if solved by er');
+                            //log('scheduling new problem '+newProblem+'; checking if solved by er');
                             // check if resulting problem can be solved directly: 
                             if (newProblem.tryEr()) {
-                                log("yes, add to start of schedule");
+                                //log("yes, add to start of schedule");
                                 newProblem.nextStep = null;
                                 schedule.unshift(newProblem);
                             }
                             // schedule unsolved problem for further processing:
                             else {
-                                log("no, add to end of schedule");
+                                //log("no, add to end of schedule");
                                 newProblem.nextStep = this.tryRrbs;
                                 schedule.push(newProblem);
                             }
-                            log('continuing with rrbs application to '+this);
+                            //log('continuing with rrbs application to '+this);
                         }
                     }
                 }
             }
         }
     }
-    log("scheduling same problem with lrbs");
+    //log("scheduling same problem with lrbs");
     this.nextStep = this.tryLrbs;
     schedule.push(this);
     return schedule.removeDuplicates();
@@ -298,7 +298,7 @@ EqualityProblem.prototype.tryLrbs = function() {
      * etc.)
      */
     
-    log('# trying lrbs');
+    //log('# trying lrbs');
 
     var schedule = [];
     
@@ -309,7 +309,7 @@ EqualityProblem.prototype.tryLrbs = function() {
         for (var sIsLHS=1; sIsLHS>=0; sIsLHS--) {
             var s = this.equations[j].formula.terms[sIsLHS ? 0 : 1];
             var t = this.equations[j].formula.terms[sIsLHS];
-            log('trying lrbs with '+s+' as s and '+t+' as t');
+            //log('trying lrbs with '+s+' as s and '+t+' as t');
             
             // lrbs can only be applied if constraint is compatible with s>t:
             var fconstraint = this.constraint.tryAddGreater(s,t);
@@ -330,7 +330,7 @@ EqualityProblem.prototype.tryLrbs = function() {
                 for (var lIsLHS=1; lIsLHS>=0; lIsLHS--) {
                     var l = sourceEquations[i].formula.terms[lIsLHS ? 0 : 1];
                     var r = sourceEquations[i].formula.terms[lIsLHS];
-                    log('   trying '+l+' as l and '+r+' as r');
+                    //log('   trying '+l+' as l and '+r+' as r');
 
                     // also need l>r:
                     var sconstraint = fconstraint.tryAddGreater(l,r);
@@ -340,7 +340,7 @@ EqualityProblem.prototype.tryLrbs = function() {
                     var sSubterms = subterms(s);
                     for (var k=0; k<sSubterms.length; k++) {
                         var p = sSubterms[k];
-                        log('  trying '+p+' as p');
+                        //log('  trying '+p+' as p');
 
                         // lrbs can only be applied if constraint is compatible with l=p:
                         var tconstraint = sconstraint.tryAddEqual(l,p);
@@ -354,13 +354,13 @@ EqualityProblem.prototype.tryLrbs = function() {
                             var new_s = new_ss[g];
                             // don't apply rule if new_s = t (D&V, condition (4), p.53):
                             if (new_s.toString() == t.toString()) continue;
-                            log('lrbs constraints satisfied: replacing s[p]='+s+' by s[r]='+new_ss[g]);
+                            //log('lrbs constraints satisfied: replacing s[p]='+s+' by s[r]='+new_ss[g]);
                             var newProblem = this.copy(tconstraint);
                             newProblem.applyLLtoEquation(j, sIsLHS, new_ss[g], sourceEquations[i]);
                             newProblem.lrbsIndex = j;
                             newProblem.lastStep = newProblem.tryLrbs;
                             newProblem.nextStep = newProblem.tryRrbs;
-                            log('scheduling new problem '+newProblem);
+                            //log('scheduling new problem '+newProblem);
                             schedule.push(newProblem);
                         }
                     }
@@ -375,7 +375,7 @@ EqualityProblem.prototype.tryEr = function() {
     /**
      * try unification of goal terms
      */
-    log("# trying er()");
+    //log("# trying er()");
     var con = this.constraint;
     for (var i=0; i<this.terms1.length; i++) {
         con = con.tryAddEqual(this.terms1[i], this.terms2[i]);
@@ -384,7 +384,7 @@ EqualityProblem.prototype.tryEr = function() {
     // We're done. Any substitution that meets con renders terms1 and terms2
     // identical, which allows closing the branch.
     this.constraint = con;
-    log("solved: "+this);
+    //log("solved: "+this);
     return true;
 }
 
@@ -396,12 +396,12 @@ EqualityProblem.prototype.applyLLtoGoal = function(i, sIsTerms1, new_si, equatio
      * term list s is this.terms1, otherwise it is this.terms2.
      */
     if (sIsTerms1) {
-        log("LL: replacing "+this.terms1[i]+" in "+this.terms1Node+" by "+new_si); 
+        //log("LL: replacing "+this.terms1[i]+" in "+this.terms1Node+" by "+new_si); 
         this.terms1 = this.terms1.copy();
         this.terms1.splice(i, 1, new_si);
     }
     else {
-        log("LL: replacing "+this.terms2[i]+" in "+this.terms2Node+" by "+new_si); 
+        //log("LL: replacing "+this.terms2[i]+" in "+this.terms2Node+" by "+new_si); 
         this.terms2 = this.terms2.copy();
         this.terms2.splice(i, 1, new_si);
     }
@@ -567,18 +567,18 @@ SubstitutionConstraint.prototype.tryAddEqual = function(s, t) {
         sfs.extendNoDuplicates(sf);
     }
     if (sfs.length == 0) {
-        log("   can't add "+s+"="+t+" to constraint "+this.solvedForms);
+        //log("   can't add "+s+"="+t+" to constraint "+this.solvedForms);
         return null;
     }
     if (sfChanged) {
-        log("   OK, can add "+s+"="+t+" to constraint "+this.solvedForms+" => "+sfs);
+        //log("   OK, can add "+s+"="+t+" to constraint "+this.solvedForms+" => "+sfs);
         var newEqualities = this.equalities.copy();
         newEqualities.push(s+'='+t);
         // newEqualities.push([s,t]);
         return new SubstitutionConstraint(newEqualities, this.inequalities, sfs);
     }
     else {
-        log("   "+s+"="+t+" is already entailed by "+this.solvedForms);
+        //log("   "+s+"="+t+" is already entailed by "+this.solvedForms);
         return this;
     }
 }
@@ -597,18 +597,18 @@ SubstitutionConstraint.prototype.tryAddGreater = function(s, t) {
         sfs.extendNoDuplicates(sfa);
     }
     if (sfs.length == 0) {
-        log("   can't add "+s+">"+t+" to constraint "+this.solvedForms);
+        //log("   can't add "+s+">"+t+" to constraint "+this.solvedForms);
         return null;
     }
     if (sfChanged) {
-        log("   OK, can add "+s+">"+t+" to constraint "+this.solvedForms+" => "+sfs);
+        //log("   OK, can add "+s+">"+t+" to constraint "+this.solvedForms+" => "+sfs);
         var newInequalities = this.inequalities.copy();
         // newInequalities.push([s,t]);
         newInequalities.push(s+'>'+t);
         return new SubstitutionConstraint(this.equalities, newInequalities, sfs);
     }
     else {
-        log("   "+s+">"+t+" is already entailed by "+this.solvedForms);
+        //log("   "+s+">"+t+" is already entailed by "+this.solvedForms);
         return this;
     }
 }
@@ -656,14 +656,14 @@ SolvedForm.prototype.addEqual = function(s, t) {
     }
     if (sStr == tStr) {
         // constraint is trivial; nothing to add
-        log("   [add "+s+"="+t+" to "+this+"?] trivial");
+        //log("   [add "+s+"="+t+" to "+this+"?] trivial");
         return [this];
     }
     if (sStr[0] == 'ξ' || sStr[0] == 'ζ') { // s is variable
         // if (this.occursCheck(s,t)) {
         if (this.occursCheckStr(sStr,tStr)) {
             // s occurs in t; unification impossible
-            log("   [add "+s+"="+t+" to "+this+"?] no, s occurs in t");
+            //log("   [add "+s+"="+t+" to "+this+"?] no, s occurs in t");
             return [];
         }
         else {
@@ -677,11 +677,11 @@ SolvedForm.prototype.addEqual = function(s, t) {
     else if (s.isArray && t.isArray) { // both terms functional
         if (s[0] != t[0]) {
             // a substitution can't make g(...) identical to f(....)
-            log("   [add "+s+"="+t+" to "+this+"?] no, different function terms");
+            //log("   [add "+s+"="+t+" to "+this+"?] no, different function terms");
             return [];
         }
         // add equality condition for all subterms:
-        log("   [add "+s+"="+t+" to "+this+"?] checking identity for subterms");
+        //log("   [add "+s+"="+t+" to "+this+"?] checking identity for subterms");
         var res = [this];
         for (var i=1; i<s.length; i++) {
             // add s[i]=t[i] equality to all members of res:
@@ -710,7 +710,7 @@ SolvedForm.prototype.addSubs = function(v, t) {
     sf.solvedDict[v] = t;
     sf.solvedDictStr.push(v+'='+t);
     sf.solvedDictStr.sort();
-    log("   [add "+v+"="+t+" to "+this+"?] substituting "+v+" by "+t+" in inequalities");
+    //log("   [add "+v+"="+t+" to "+this+"?] substituting "+v+" by "+t+" in inequalities");
     var res = [sf];
     for (var i=0; i<this.inequalities.length; i++) {
         var ineq = this.inequalities[i];
@@ -722,7 +722,7 @@ SolvedForm.prototype.addSubs = function(v, t) {
         }
         res = newRes;
     }
-    log("   [add "+v+"="+t+" to "+this+"?] result: "+res);
+    //log("   [add "+v+"="+t+" to "+this+"?] result: "+res);
     return res;
 }
 
@@ -748,23 +748,23 @@ SolvedForm.prototype.addGreater = function(s, t) {
     var tIsVar = tStr[0] == 'ξ' || tStr[0] == 'ζ';
     if (sIsVar || tIsVar) {
         if (this.inequalitiesStr.includes(sStr+'>'+tStr)) {
-            log("   [add "+s+">"+t+" to "+this+"?] yes, already part of constraint");
+            //log("   [add "+s+">"+t+" to "+this+"?] yes, already part of constraint");
             return [this];
         }
         if (sIsVar && this.occursCheckStr(sStr,tStr)) {
             // if variable s occurs in t, we can't have s>t:
-            log("   [add "+s+">"+t+" to "+this+"?] no, s occurs in t");
+            //log("   [add "+s+">"+t+" to "+this+"?] no, s occurs in t");
             return [];
         }
         else if (tIsVar && this.occursCheckStr(tStr,sStr)) {
             // if variable t occurs in s, we automatically have s>t:
-            log("   [add "+s+">"+t+" to "+this+"?] yes, trivially: t occurs in s");
+            //log("   [add "+s+">"+t+" to "+this+"?] yes, trivially: t occurs in s");
             return [this];
         }
         else {
             // we can't have s>t and also t>s:
             if (this.inequalitiesStr.includes(tStr+'>'+sStr)) {
-                log("   [add "+s+">"+t+" to "+this+"?] no, clash with "+this.inequalities[i]);
+                //log("   [add "+s+">"+t+" to "+this+"?] no, clash with "+this.inequalities[i]);
                 return [];
             }
             // create extended sf:
@@ -773,7 +773,7 @@ SolvedForm.prototype.addGreater = function(s, t) {
             sf.inequalitiesStr.push(sStr+'>'+tStr);
             sf.inequalities.sort(); // for comparing sfs
             // here we should ideally check sf.checkSatisfiable()
-            log("   [add "+s+">"+t+" to "+this+"?] yes. extended sf is "+sf);
+            //log("   [add "+s+">"+t+" to "+this+"?] yes. extended sf is "+sf);
             return [sf];
         }
     }
@@ -782,7 +782,7 @@ SolvedForm.prototype.addGreater = function(s, t) {
     if (sRoot > tRoot) { // function symbol of s is "greater"
         // f(v1..vn) > g(u1..um); we add f(v1..vn) > u1, ..., f(v1...vn) > um;
         // each of these additions may return a set of SolvedForms.
-        log("   [add "+s+">"+t+" to "+this+"?] function symbol of "+s+" is greater");
+        //log("   [add "+s+">"+t+" to "+this+"?] function symbol of "+s+" is greater");
         var res = [this];
         if (t.isArray) {
             for (var i=1; i<t.length; i++) {
@@ -794,21 +794,21 @@ SolvedForm.prototype.addGreater = function(s, t) {
                 }
                 res = newRes;
             }
-            log("   [add "+s+">"+t+" to "+this+"?] result: "+res);
+            //log("   [add "+s+">"+t+" to "+this+"?] result: "+res);
         }
         // here we should ideally filter by sf.checkSatisfiable()
         return res;
     }
     else if (tRoot > sRoot) { // function symbol of t is "greater"
         // f(v1..vn) > g(u1..um); we add v1 >= g(u1..um) OR .. OR vn >= g(u1..um)
-        log("   [add "+s+">"+t+" to "+this+"?] function symbol in 2nd term is greater; one arg in 1st must be >= 1st term");
+        //log("   [add "+s+">"+t+" to "+this+"?] function symbol in 2nd term is greater; one arg in 1st must be >= 1st term");
         var res = [];
         if (s.isArray) {
             for (var i=1; i<s.length; i++) {
                 res.extendNoDuplicates(this.addEqual(s[i],t));
                 res.extendNoDuplicates(this.addGreater(s[i],t));
             }
-            log("   [add "+s+">"+t+" to "+this+"?] result: "+res);
+            //log("   [add "+s+">"+t+" to "+this+"?] result: "+res);
         }
         // here we should ideally filter by sf.checkSatisfiable()
         return res;
@@ -821,16 +821,16 @@ SolvedForm.prototype.addGreater = function(s, t) {
         // ...
         // OR (v1 = u1, v2 = u2, .., vn > un)
         if (!s.isArray) {
-            log("   [add "+s+">"+t+" to "+this+"?] no: same constant");
+            //log("   [add "+s+">"+t+" to "+this+"?] no: same constant");
             return [];
         }
         var res = [];
-        log("   [add "+s+">"+t+" to "+this+"?] same function symbol; f(..ti..)>f(..si..) if ti>=f(..si..)");
+        //log("   [add "+s+">"+t+" to "+this+"?] same function symbol; f(..ti..)>f(..si..) if ti>=f(..si..)");
         for (var i=1; i<s.length; i++) { 
             res.extendNoDuplicates(this.addEqual(s[i],t));
             res.extendNoDuplicates(this.addGreater(s[i],t));
         }
-        log("   ["+s+">"+t+"?] alternatively, f(..ti..)>f(..si..) if t1=s1,..,ti>si,f(..ti+j..)>si+j");
+        //log("   ["+s+">"+t+"?] alternatively, f(..ti..)>f(..si..) if t1=s1,..,ti>si,f(..ti+j..)>si+j");
         var eq = [this];
         for (var i=1; i<s.length; i++) {
             // add s[i]>t[i] to all members of eq:
@@ -854,7 +854,7 @@ SolvedForm.prototype.addGreater = function(s, t) {
             }
             eq = newEq;
         }
-        log("   ["+s+">"+t+"?] new sfs: "+res);
+        //log("   ["+s+">"+t+"?] new sfs: "+res);
         // here we should ideally filter by sf.checkSatisfiable()
         return res;
     }
