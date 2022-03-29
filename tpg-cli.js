@@ -66,10 +66,7 @@ function startProof(input, constraints) {
 	// The prover has finished. Show result:
 	if (treeClosed) {
 	    status = "Theorem";
-	    const sentree = new SenTree(this.tree, parser);
-	    if (parser.isModal)
-		sentree.modalize();
-	    
+	    const sentree = new SenTree(this.tree, parser);	    
 	    const painter = new XmlPainter(sentree);
 	    proof = painter.paintTree();
 	    process.exitCode = 0;
