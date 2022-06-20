@@ -8,6 +8,9 @@ const {
     ModalFormula,
     NegatedFormula
 } = require('./formula.js');
+const {
+    EqualityProblem
+} = require('./equality.js');
 
 // When building free-variable tableaux, one sometimes faces the
 // choice of either closing a branch by unifying terms or expanding

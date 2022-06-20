@@ -1,3 +1,6 @@
+const { Formula } = require('./formula.js');
+const Parser = require('./parser.js');
+const { assert, assertEqual } = require('./assert.js');
 
 tests = {
 
@@ -72,3 +75,5 @@ tests = {
     }
     
 }
+
+module.exports = tests;

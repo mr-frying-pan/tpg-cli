@@ -1,3 +1,7 @@
+const { EqualityProblem, SolvedForm, subterms, replaceSubterm } = require('./equality.js');
+const { AtomicFormula } = require('./formula.js');
+const { Node } = require('./prover.js');
+const { assertEqual, assert } = require('./assert.js');
 
 tests = {
 
@@ -85,3 +89,5 @@ function solveEqualityProblem(terms1, terms2, equationFormulas) {
     var solstrs = solutions.map(function(ep) { return ep.getSubstitution().toString() });
     return solstrs.removeDuplicates();
 }
+
+module.exports = tests

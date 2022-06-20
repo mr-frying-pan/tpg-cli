@@ -1,3 +1,6 @@
+const { Formula, AtomicFormula } = require('./formula.js');
+const { Node, Prover } = require('./prover.js');
+
 /**
  * Here we define some methods for handling equality (identity).
  *
@@ -916,4 +919,11 @@ SolvedForm.prototype.equals = function(sf) {
 
 SolvedForm.prototype.toString = function() {
     return '{'+this.solvedDictStr.join(' ')+' '+this.inequalitiesStr.join(' ')+'}';
+}
+
+module.exports = {
+    EqualityProblem,
+    SolvedForm,
+    subterms,
+    replaceSubterm
 }
