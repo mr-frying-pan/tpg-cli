@@ -245,9 +245,9 @@ Prover.prototype.pruneAlternatives = function(tree) {
      * has been added or altered; might remove <tree> itself if it is found redundant;
      * removed trees get attribute 'removed'
      */
-    log("pruning alternatives");
-    log("There are currently "+this.alternatives.length+' alternatives');
-    log(this.alternatives.map(function(t,i) { return "alternative "+i+":"+t }).join('<br>')); 
+    //log("pruning alternatives");
+    //log("There are currently "+this.alternatives.length+' alternatives');
+    //log(this.alternatives.map(function(t,i) { return "alternative "+i+":"+t }).join('<br>')); 
     for (var i=0; i<this.alternatives.length; i++) {
         if (this.alternatives[i] == tree) continue;
         var keepWhich = this.keepWhichTree(tree, this.alternatives[i]);
@@ -303,11 +303,11 @@ Prover.prototype.keepWhichTree = function(tree, altTree) {
     // Each open branch on one tree is qualitatively identical to or an
     // extension of an open branch on the other.
     if (tree.openBranches.length > altTree.openBranches.length) {
-        log('tree has extra open branches; removing');
+        //log('tree has extra open branches; removing');
         return [false, true];
     }
     if (altTree.openBranches.length > tree.openBranches.length) {
-        log('alternative has extra open branches; removing');
+        //log('alternative has extra open branches; removing');
         return [true, false];
     }
     // The trees have the same open branches. We check if one tree is more
@@ -662,7 +662,7 @@ Prover.literal = function(branch, nodeList) {
     var altTrees = [];
     var localTree = null;
     for (var i=0; i<unifiers.length; i++) {
-        log("processing unifier on new tree: "+unifiers[i]);
+        //log("processing unifier on new tree: "+unifiers[i]);
         var altTree = tree.copy();
         altTree.applySubstitution(unifiers[i]);
         altTree.closeCloseableBranches();
@@ -716,7 +716,7 @@ Prover.literal = function(branch, nodeList) {
         return;
     }
     else if (branch.todoList.length) {
-        log("unifier applied on new tree; saving original tree as alternative");
+        //log("unifier applied on new tree; saving original tree as alternative");
         altTrees.push(tree);
         // Now altTrees contains trees with a unifier applied, and, after those,
         // the original ununified tree.
@@ -727,14 +727,14 @@ Prover.literal = function(branch, nodeList) {
     prover.alternatives.splice(curTreeIndex, 1);
     if (altTrees.length) {
         do {
-            log("switching to first of the just saved alternatives (if not redundant)");
+            //log("switching to first of the just saved alternatives (if not redundant)");
             var newTree = altTrees.shift();
             // replaces prover.alternatives[curTreeIndex] with newTree:
             prover.useTree(newTree, curTreeIndex);
             prover.pruneAlternatives(newTree);
         } while (newTree.removed && altTrees.length);
         if (altTrees.length) {
-            log("storing the others in prover.alternatives");
+            //log("storing the others in prover.alternatives");
             prover.storeAlternatives(altTrees);
         }
     }

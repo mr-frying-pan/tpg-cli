@@ -111,13 +111,13 @@ ModelFinder.prototype.getClauses = function(formulas) {
         //log('cnf: '+clauses);
         res.extendNoDuplicates(clauses);
         var clausesTseitin = this.tseitinCNF(quantifiersRemoved);
-        log('tseitin cnf: '+clausesTseitin);
+        //log('tseitin cnf: '+clausesTseitin);
         resTseitin.extendNoDuplicates(clausesTseitin);
     }
-    log('combined non-tseitin clauses: '+res);
-    log('combined tseitin clauses: '+resTseitin);
+    //log('combined non-tseitin clauses: '+res);
+    //log('combined tseitin clauses: '+resTseitin);
     if (resTseitin.length < res.length) {
-        log('using combined tseitin cnf');
+        //log('using combined tseitin cnf');
         res = resTseitin;
     }
     // order clauses by length (number of disjuncts):
