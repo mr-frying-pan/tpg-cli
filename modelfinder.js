@@ -1471,4 +1471,7 @@ function dictToString(dict) {
     return res;
 }
 
-module.exports = ModelFinder;
+module.exports = {
+    ModelFinder,
+    Model
+};

@@ -1,5 +1,5 @@
 const { performance } = require('perf_hooks');
-const ModelFinder = require('./modelfinder.js');
+const { ModelFinder } = require('./modelfinder.js');
 const {
     Formula,
     AtomicFormula,
