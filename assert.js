@@ -1,22 +1,20 @@
+/**
+ * Assert functions, return when pass, throw when fail
+ */
+
 let assertResults = []
 
 function assertEqual(x,y) {
-    if (x==y) assertResults.push('PASS');
-    else assertResults.push(`FAIL: ${x} should be ${y}`);
+    if (x==y) return;
+    else throw `FAIL: ${x} should be ${y}`;
 }
 
 function assert(x) {
-    if (x) assertResults.push('PASS');
-    else assertResults.push('FAIL');
-}
-
-function resetAsserts() {
-    assertResults = [];
+    if (x) return;
+    else throw 'FAIL';
 }
 
 module.exports = {
     assertEqual,
     assert,
-    assertResults,
-    resetAsserts
 }
