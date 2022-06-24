@@ -115,7 +115,14 @@ Not yet implemented :(
 
 ## Tests
 
-Not yet implemented :(
+Run tests like this:
+```bash
+$ node tests.js <verbosity>
+```
+
+`<verbosity>` controls logging level. There are only two levels available, 0 and 1. Default is 1.
+
+Prover and SenTree tests are currently disabled due to circular dependency between `prover.js` and `equality.js`.
 
 # Issues
 

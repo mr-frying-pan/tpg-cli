@@ -6,15 +6,18 @@ let assertResults = []
 
 function assertEqual(x,y) {
     if (x==y) return;
-    else throw `FAIL: ${x} should be ${y}`;
+    else throw new AssertError(`FAIL: ${x} should be ${y}`);
 }
 
 function assert(x) {
     if (x) return;
-    else throw 'FAIL';
+    else throw new AssertError('FAIL');
 }
+
+class AssertError extends Error {}
 
 module.exports = {
     assertEqual,
     assert,
+    AssertError
 }

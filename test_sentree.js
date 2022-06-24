@@ -1,3 +1,8 @@
+const Parser = require('./parser.js');
+const { Prover } = require('./prover.js');
+const SenTree = require('./sentree.js');
+const { EqualityProblem } = require('./equality.js');
+const { assert, assertEqual } = require('./assert.js');
 
 tests = {
 
@@ -323,3 +328,5 @@ tests = {
     
     
 }
+
+module.exports = tests;

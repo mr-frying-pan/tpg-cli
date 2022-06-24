@@ -1,6 +1,5 @@
 require('./array.js');
 const {
-    Formula,
     AtomicFormula,
     QuantifiedFormula,
     BinaryFormula,

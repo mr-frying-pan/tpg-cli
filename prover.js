@@ -3,10 +3,6 @@ const { ModelFinder } = require('./modelfinder.js');
 const {
     Formula,
     AtomicFormula,
-    QuantifiedFormula,
-    BinaryFormula,
-    ModalFormula,
-    NegatedFormula
 } = require('./formula.js');
 const {
     EqualityProblem
